@@ -11239,6 +11239,8 @@ define('skylark-bootstrap3/tab',[
     return this
   }
 
+  return $.fn.tab;
+
 });
 
 define('skylark-bootstrap3/transition',[

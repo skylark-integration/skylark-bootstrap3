@@ -166,4 +166,6 @@ define([
     return this
   }
 
+  return $.fn.tab;
+
 });
