@@ -1,20 +1,12 @@
-/**
- * skylark-bootstrap3 - The skylark standard widget tookit
- * @author Hudaokeji, Inc.
- * @version v0.9.2
- * @link https://github.com/skylarkui/skylark-bootstrap3/
- * @license MIT
- */
 define([
-  "skylark-utils/skylark",
-  "skylark-utils/langx",
-  "skylark-utils/browser",
-  "skylark-utils/eventer",
-  "skylark-utils/noder",
-  "skylark-utils/geom",
-  "skylark-utils/query",
-  "skylark-utils/widgets"
-],function(skylark,langx,browser,eventer,noder,geom,$,widgets){
+  "skylark-utils-dom/skylark",
+  "skylark-langx/langx",
+  "skylark-utils-dom/browser",
+  "skylark-utils-dom/eventer",
+  "skylark-utils-dom/noder",
+  "skylark-utils-dom/geom",
+  "skylark-utils-dom/query"
+],function(skylark,langx,browser,eventer,noder,geom,$){
 	var ui = skylark.ui = skylark.ui || {}, 
 		bs3 = ui.bs3 = {};
 
@@ -80,7 +72,7 @@ define([
 
 /*---------------------------------------------------------------------------------*/
 
-	var WidgetBase = widgets.Widget.inherit({
+	var WidgetBase = langx.Evented.inherit({
         klassName: "WidgetBase",
     });
 

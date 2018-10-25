@@ -1,16 +1,9 @@
-/**
- * skylark-bootstrap3 - The skylark standard widget tookit
- * @author Hudaokeji, Inc.
- * @version v0.9.2
- * @link https://github.com/skylarkui/skylark-bootstrap3/
- * @license MIT
- */
 define([
-  "skylark-utils/browser",
-  "skylark-utils/langx",
-  "skylark-utils/eventer",
-  "skylark-utils/velm",
-  "skylark-utils/query",
+  "skylark-utils-dom/browser",
+  "skylark-langx/langx",
+  "skylark-utils-dom/eventer",
+  "skylark-utils-dom/velm",
+  "skylark-utils-dom/query",
   "./bs3",
   "./tooltip" 
 ],function(browser,langx,eventer,velm,$,bs3,tooltip){

@@ -1,11 +1,11 @@
 define([
-  "skylark-utils/langx",
-  "skylark-utils/browser",
-  "skylark-utils/eventer",
-  "skylark-utils/noder",
-  "skylark-utils/geom",
-  "skylark-utils/velm",
-  "skylark-utils/query",
+  "skylark-langx/langx",
+  "skylark-utils-dom/browser",
+  "skylark-utils-dom/eventer",
+  "skylark-utils-dom/noder",
+  "skylark-utils-dom/geom",
+  "skylark-utils-dom/velm",
+  "skylark-utils-dom/query",
   "./bs3"
 ],function(langx,browser,eventer,noder,geom,velm,$,bs3){
 

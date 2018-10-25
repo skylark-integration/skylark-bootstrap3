@@ -1,12 +1,5 @@
-/**
- * skylark-bootstrap3 - The skylark standard widget tookit
- * @author Hudaokeji, Inc.
- * @version v0.9.2
- * @link https://github.com/skylarkui/skylark-bootstrap3/
- * @license MIT
- */
 define([
-    "skylark-utils/query",
+    "skylark-utils-dom/query",
     "./affix",
     "./alert",
     "./button",

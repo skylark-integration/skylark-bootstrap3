@@ -7,9 +7,9 @@
  */
 (function(factory,globals) {
   var define = globals.define,
-  	  require = globals.require,
-  	  isAmd = (typeof define === 'function' && define.amd),
-  	  isCmd = (!isAmd && typeof exports !== 'undefined');
+      require = globals.require,
+      isAmd = (typeof define === 'function' && define.amd),
+      isCmd = (!isAmd && typeof exports !== 'undefined');
 
   if (!isAmd && !define) {
     var map = {};
@@ -18,7 +18,7 @@
           return relative;
         }
         var stack = base.split("/"),
-            parts = relative.split("/");    
+            parts = relative.split("/");
         stack.pop(); 
         for (var i=0; i<parts.length; i++) {
             if (parts[i] == ".")
@@ -41,7 +41,7 @@
             };
             require(id);
         } else {
-            resolved[id] = factory;
+            map[id] = factory;
         }
     };
     require = globals.require = function(id) {
@@ -61,32 +61,34 @@
         return module.exports;
     };
   }
+  
+  if (!define) {
+     throw new Error("The module utility (ex: requirejs or skylark-utils) is not loaded!");
+  }
 
   factory(define,require);
 
-  if (!isAmd) { 
-    if (isCmd) {
-      exports = require("skylark-bootstrap3/main");
-    } else {
-      if (!globals.skylarkjs) {
-         globals.skylarkjs = require("skylark-langx/skylark");
-      }
+  if (!isAmd) {
+    var skylarkjs = require("skylark-langx/skylark");
 
+    if (isCmd) {
+      exports = skylarkjs;
+    } else {
+      globals.skylarkjs  = skylarkjs;
     }
   }
 
 })(function(define,require) {
 
 define('skylark-bootstrap3/bs3',[
-  "skylark-utils/skylark",
-  "skylark-utils/langx",
-  "skylark-utils/browser",
-  "skylark-utils/eventer",
-  "skylark-utils/noder",
-  "skylark-utils/geom",
-  "skylark-utils/query",
-  "skylark-utils/widgets"
-],function(skylark,langx,browser,eventer,noder,geom,$,widgets){
+  "skylark-utils-dom/skylark",
+  "skylark-langx/langx",
+  "skylark-utils-dom/browser",
+  "skylark-utils-dom/eventer",
+  "skylark-utils-dom/noder",
+  "skylark-utils-dom/geom",
+  "skylark-utils-dom/query"
+],function(skylark,langx,browser,eventer,noder,geom,$){
 	var ui = skylark.ui = skylark.ui || {}, 
 		bs3 = ui.bs3 = {};
 
@@ -152,7 +154,7 @@ define('skylark-bootstrap3/bs3',[
 
 /*---------------------------------------------------------------------------------*/
 
-	var WidgetBase = widgets.Widget.inherit({
+	var WidgetBase = langx.Evented.inherit({
         klassName: "WidgetBase",
     });
 
@@ -165,13 +167,13 @@ define('skylark-bootstrap3/bs3',[
 });
 
 define('skylark-bootstrap3/affix',[
-  "skylark-utils/langx",
-  "skylark-utils/browser",
-  "skylark-utils/eventer",
-  "skylark-utils/noder",
-  "skylark-utils/geom",
-  "skylark-utils/velm",
-  "skylark-utils/query",
+  "skylark-langx/langx",
+  "skylark-utils-dom/browser",
+  "skylark-utils-dom/eventer",
+  "skylark-utils-dom/noder",
+  "skylark-utils-dom/geom",
+  "skylark-utils-dom/velm",
+  "skylark-utils-dom/query",
   "./bs3"
 ],function(langx,browser,eventer,noder,geom,velm,$,bs3){
 
@@ -328,13 +330,13 @@ define('skylark-bootstrap3/affix',[
 });
 
 define('skylark-bootstrap3/alert',[
-  "skylark-utils/langx",
-  "skylark-utils/browser",
-  "skylark-utils/eventer",
-  "skylark-utils/noder",
-  "skylark-utils/geom",
-  "skylark-utils/velm",
-  "skylark-utils/query",
+  "skylark-langx/langx",
+  "skylark-utils-dom/browser",
+  "skylark-utils-dom/eventer",
+  "skylark-utils-dom/noder",
+  "skylark-utils-dom/geom",
+  "skylark-utils-dom/velm",
+  "skylark-utils-dom/query",
   "./bs3"
 ],function(langx,browser,eventer,noder,geom,velm,$,bs3){
 
@@ -444,13 +446,13 @@ define('skylark-bootstrap3/alert',[
 });
 
 define('skylark-bootstrap3/button',[
-  "skylark-utils/langx",
-  "skylark-utils/browser",
-  "skylark-utils/eventer",
-  "skylark-utils/noder",
-  "skylark-utils/geom",
-  "skylark-utils/velm",
-  "skylark-utils/query",
+  "skylark-langx/langx",
+  "skylark-utils-dom/browser",
+  "skylark-utils-dom/eventer",
+  "skylark-utils-dom/noder",
+  "skylark-utils-dom/geom",
+  "skylark-utils-dom/velm",
+  "skylark-utils-dom/query",
   "./bs3"
 ],function(langx,browser,eventer,noder,geom,velm,$,bs3){
 
@@ -590,13 +592,13 @@ define('skylark-bootstrap3/button',[
 });
 
 define('skylark-bootstrap3/carousel',[
-    "skylark-utils/langx",
-    "skylark-utils/browser",
-    "skylark-utils/eventer",
-    "skylark-utils/noder",
-    "skylark-utils/geom",
-    "skylark-utils/velm",
-    "skylark-utils/query",
+    "skylark-langx/langx",
+    "skylark-utils-dom/browser",
+    "skylark-utils-dom/eventer",
+    "skylark-utils-dom/noder",
+    "skylark-utils-dom/geom",
+    "skylark-utils-dom/velm",
+    "skylark-utils-dom/query",
     "./bs3"
 ], function(langx, browser, eventer, noder, geom, velm, $, bs3) {
 
@@ -843,13 +845,13 @@ define('skylark-bootstrap3/carousel',[
 
 });
 define('skylark-bootstrap3/collapse',[
-  "skylark-utils/langx",
-  "skylark-utils/browser",
-  "skylark-utils/eventer",
-  "skylark-utils/noder",
-  "skylark-utils/geom",
-  "skylark-utils/velm",
-  "skylark-utils/query",
+  "skylark-langx/langx",
+  "skylark-utils-dom/browser",
+  "skylark-utils-dom/eventer",
+  "skylark-utils-dom/noder",
+  "skylark-utils-dom/geom",
+  "skylark-utils-dom/velm",
+  "skylark-utils-dom/query",
   "./bs3"
 ],function(langx,browser,eventer,noder,geom,velm,$,bs3){
 
@@ -1074,13 +1076,13 @@ define('skylark-bootstrap3/collapse',[
 });
 
 define('skylark-bootstrap3/dropdown',[
-  "skylark-utils/langx",
-  "skylark-utils/browser",
-  "skylark-utils/eventer",
-  "skylark-utils/noder",
-  "skylark-utils/geom",
-  "skylark-utils/velm",
-  "skylark-utils/query",
+  "skylark-langx/langx",
+  "skylark-utils-dom/browser",
+  "skylark-utils-dom/eventer",
+  "skylark-utils-dom/noder",
+  "skylark-utils-dom/geom",
+  "skylark-utils-dom/velm",
+  "skylark-utils-dom/query",
   "./bs3"
 ],function(langx,browser,eventer,noder,geom,velm,$,bs3){
 
@@ -1255,13 +1257,13 @@ define('skylark-bootstrap3/dropdown',[
 });
 
 define('skylark-bootstrap3/modal',[
-  "skylark-utils/langx",
-  "skylark-utils/browser",
-  "skylark-utils/eventer",
-  "skylark-utils/noder",
-  "skylark-utils/geom",
-  "skylark-utils/velm",
-  "skylark-utils/query",
+  "skylark-langx/langx",
+  "skylark-utils-dom/browser",
+  "skylark-utils-dom/eventer",
+  "skylark-utils-dom/noder",
+  "skylark-utils-dom/geom",
+  "skylark-utils-dom/velm",
+  "skylark-utils-dom/query",
   "./bs3"
 ],function(langx,browser,eventer,noder,geom,velm,$,bs3){
 
@@ -1601,13 +1603,13 @@ define('skylark-bootstrap3/modal',[
 });
 
 define('skylark-bootstrap3/tooltip',[
-  "skylark-utils/langx",
-  "skylark-utils/browser",
-  "skylark-utils/eventer",
-  "skylark-utils/noder",
-  "skylark-utils/geom",
-  "skylark-utils/velm",
-  "skylark-utils/query",
+  "skylark-langx/langx",
+  "skylark-utils-dom/browser",
+  "skylark-utils-dom/eventer",
+  "skylark-utils-dom/noder",
+  "skylark-utils-dom/geom",
+  "skylark-utils-dom/velm",
+  "skylark-utils-dom/query",
   "./bs3"
 ],function(langx,browser,eventer,noder,geom,velm,$,bs3){
 
@@ -2139,11 +2141,11 @@ define('skylark-bootstrap3/tooltip',[
 });
 
 define('skylark-bootstrap3/popover',[
-  "skylark-utils/browser",
-  "skylark-utils/langx",
-  "skylark-utils/eventer",
-  "skylark-utils/velm",
-  "skylark-utils/query",
+  "skylark-utils-dom/browser",
+  "skylark-langx/langx",
+  "skylark-utils-dom/eventer",
+  "skylark-utils-dom/velm",
+  "skylark-utils-dom/query",
   "./bs3",
   "./tooltip" 
 ],function(browser,langx,eventer,velm,$,bs3,tooltip){
@@ -2255,13 +2257,13 @@ define('skylark-bootstrap3/popover',[
 });
 
 define('skylark-bootstrap3/scrollspy',[
-  "skylark-utils/langx",
-  "skylark-utils/browser",
-  "skylark-utils/eventer",
-  "skylark-utils/noder",
-  "skylark-utils/geom",
-  "skylark-utils/velm",
-  "skylark-utils/query",
+  "skylark-langx/langx",
+  "skylark-utils-dom/browser",
+  "skylark-utils-dom/eventer",
+  "skylark-utils-dom/noder",
+  "skylark-utils-dom/geom",
+  "skylark-utils-dom/velm",
+  "skylark-utils-dom/query",
   "./bs3"
 ],function(langx,browser,eventer,noder,geom,velm,$,bs3){
 
@@ -2432,13 +2434,13 @@ define('skylark-bootstrap3/scrollspy',[
 });
 
 define('skylark-bootstrap3/tab',[
-  "skylark-utils/langx",
-  "skylark-utils/browser",
-  "skylark-utils/eventer",
-  "skylark-utils/noder",
-  "skylark-utils/geom",
-  "skylark-utils/velm",
-  "skylark-utils/query",
+  "skylark-langx/langx",
+  "skylark-utils-dom/browser",
+  "skylark-utils-dom/eventer",
+  "skylark-utils-dom/noder",
+  "skylark-utils-dom/geom",
+  "skylark-utils-dom/velm",
+  "skylark-utils-dom/query",
   "./bs3"
 ],function(langx,browser,eventer,noder,geom,velm,$,bs3){
 
@@ -2597,13 +2599,13 @@ define('skylark-bootstrap3/tab',[
 });
 
 define('skylark-bootstrap3/transition',[
-  "skylark-utils/langx",
-  "skylark-utils/browser",
-  "skylark-utils/eventer",
-  "skylark-utils/noder",
-  "skylark-utils/geom",
-  "skylark-utils/velm",
-  "skylark-utils/query",
+  "skylark-langx/langx",
+  "skylark-utils-dom/browser",
+  "skylark-utils-dom/eventer",
+  "skylark-utils-dom/noder",
+  "skylark-utils-dom/geom",
+  "skylark-utils-dom/velm",
+  "skylark-utils-dom/query",
   "./bs3"
 ],function(langx,browser,eventer,noder,geom,velm,$,bs3){
 
@@ -2665,7 +2667,7 @@ define('skylark-bootstrap3/transition',[
 });
 
 define('skylark-bootstrap3/main',[
-    "skylark-utils/query",
+    "skylark-utils-dom/query",
     "./affix",
     "./alert",
     "./button",
