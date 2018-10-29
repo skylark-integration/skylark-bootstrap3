@@ -111,8 +111,8 @@ define([
       var scrollSize = langx.camelCase(['scroll', dimension].join('-'))
 
       this.$element
-        .one('bsTransitionEnd', langx.proxy(complete, this))
-        .emulateTransitionEnd(Collapse.TRANSITION_DURATION)[dimension](this.$element[0][scrollSize])
+        .one('transitionEnd', langx.proxy(complete, this))
+        .transitionEnd(Collapse.TRANSITION_DURATION)[dimension](this.$element[0][scrollSize])
     },
 
     hide : function () {
@@ -149,8 +149,8 @@ define([
 
       this.$element
         [dimension](0)
-        .one('bsTransitionEnd', langx.proxy(complete, this))
-        .emulateTransitionEnd(Collapse.TRANSITION_DURATION)
+        .one('transitionEnd', langx.proxy(complete, this))
+        .transitionEnd(Collapse.TRANSITION_DURATION)
     },
 
     toggle : function () {

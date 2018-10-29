@@ -188,7 +188,7 @@ define([
             $active.addClass(direction)
             $next.addClass(direction)
             $active
-                .one('bsTransitionEnd', function() {
+                .one('transitionEnd', function() {
                     $next.removeClass([type, direction].join(' ')).addClass('active')
                     $active.removeClass(['active', direction].join(' '))
                     that.sliding = false
@@ -196,7 +196,7 @@ define([
                         that.$element.trigger(slidEvent)
                     }, 0)
                 })
-                .emulateTransitionEnd(Carousel.TRANSITION_DURATION)
+                .transitionEnd()
         } else {
             $active.removeClass('active')
             $next.addClass('active')

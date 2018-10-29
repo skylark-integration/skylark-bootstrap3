@@ -117,8 +117,8 @@ define([
 
       $active.length && transition ?
         $active
-          .one('bsTransitionEnd', next)
-          .emulateTransitionEnd(Tab.TRANSITION_DURATION) :
+          .one('transitionEnd', next)
+          .transitionEnd(Tab.TRANSITION_DURATION) :
         next()
 
       $active.removeClass('in')

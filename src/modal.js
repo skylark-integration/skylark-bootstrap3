@@ -103,10 +103,10 @@ define([
 
         transition ?
           that.$dialog // wait for modal to slide in
-            .one('bsTransitionEnd', function () {
+            .one('transitionEnd', function () {
               that.$element.trigger('focus').trigger(e)
             })
-            .emulateTransitionEnd(Modal.TRANSITION_DURATION) :
+            .transitionEnd(Modal.TRANSITION_DURATION) :
           that.$element.trigger('focus').trigger(e)
       })
     },
@@ -136,8 +136,8 @@ define([
 
       browser.support.transition && this.$element.hasClass('fade') ?
         this.$element
-          .one('bsTransitionEnd', langx.proxy(this.hideModal, this))
-          .emulateTransitionEnd(Modal.TRANSITION_DURATION) :
+          .one('transitionEnd', langx.proxy(this.hideModal, this))
+          .transitionEnd(Modal.TRANSITION_DURATION) :
         this.hideModal()
     },
 
@@ -222,8 +222,8 @@ define([
 
         doAnimate ?
           this.$backdrop
-            .one('bsTransitionEnd', callback)
-            .emulateTransitionEnd(Modal.BACKDROP_TRANSITION_DURATION) :
+            .one('transitionEnd', callback)
+            .transitionEnd(Modal.BACKDROP_TRANSITION_DURATION) :
           callback()
 
       } else if (!this.isShown && this.$backdrop) {
@@ -235,8 +235,8 @@ define([
         }
         browser.support.transition && this.$element.hasClass('fade') ?
           this.$backdrop
-            .one('bsTransitionEnd', callbackRemove)
-            .emulateTransitionEnd(Modal.BACKDROP_TRANSITION_DURATION) :
+            .one('transitionEnd', callbackRemove)
+            .transitionEnd(Modal.BACKDROP_TRANSITION_DURATION) :
           callbackRemove()
 
       } else if (callback) {
