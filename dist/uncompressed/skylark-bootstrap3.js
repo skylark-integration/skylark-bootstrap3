@@ -56,7 +56,7 @@
                 args.push(require(dep));
             })
 
-            module.exports = module.factory.apply(window, args);
+            module.exports = module.factory.apply(globals, args);
         }
         return module.exports;
     };
@@ -72,7 +72,7 @@
     var skylarkjs = require("skylark-langx/skylark");
 
     if (isCmd) {
-      exports = skylarkjs;
+      module.exports = skylarkjs;
     } else {
       globals.skylarkjs  = skylarkjs;
     }
@@ -172,10 +172,9 @@ define('skylark-bootstrap3/affix',[
   "skylark-utils-dom/eventer",
   "skylark-utils-dom/noder",
   "skylark-utils-dom/geom",
-  "skylark-utils-dom/velm",
   "skylark-utils-dom/query",
   "./bs3"
-],function(langx,browser,eventer,noder,geom,velm,$,bs3){
+],function(langx,browser,eventer,noder,geom,$,bs3){
 
 
 /* ========================================================================
@@ -335,10 +334,9 @@ define('skylark-bootstrap3/alert',[
   "skylark-utils-dom/eventer",
   "skylark-utils-dom/noder",
   "skylark-utils-dom/geom",
-  "skylark-utils-dom/velm",
   "skylark-utils-dom/query",
   "./bs3"
-],function(langx,browser,eventer,noder,geom,velm,$,bs3){
+],function(langx,browser,eventer,noder,geom,$,bs3){
 
 /* ========================================================================
  * Bootstrap: alert.js v3.3.7
@@ -451,10 +449,9 @@ define('skylark-bootstrap3/button',[
   "skylark-utils-dom/eventer",
   "skylark-utils-dom/noder",
   "skylark-utils-dom/geom",
-  "skylark-utils-dom/velm",
   "skylark-utils-dom/query",
   "./bs3"
-],function(langx,browser,eventer,noder,geom,velm,$,bs3){
+],function(langx,browser,eventer,noder,geom,$,bs3){
 
 /* ========================================================================
  * Bootstrap: button.js v3.3.7
@@ -597,10 +594,9 @@ define('skylark-bootstrap3/carousel',[
     "skylark-utils-dom/eventer",
     "skylark-utils-dom/noder",
     "skylark-utils-dom/geom",
-    "skylark-utils-dom/velm",
     "skylark-utils-dom/query",
     "./bs3"
-], function(langx, browser, eventer, noder, geom, velm, $, bs3) {
+], function(langx, browser, eventer, noder, geom, $, bs3) {
 
     /* ========================================================================
      * Bootstrap: carousel.js v3.3.7
@@ -850,10 +846,9 @@ define('skylark-bootstrap3/collapse',[
   "skylark-utils-dom/eventer",
   "skylark-utils-dom/noder",
   "skylark-utils-dom/geom",
-  "skylark-utils-dom/velm",
   "skylark-utils-dom/query",
   "./bs3"
-],function(langx,browser,eventer,noder,geom,velm,$,bs3){
+],function(langx,browser,eventer,noder,geom,$,bs3){
 
 /* ========================================================================
  * Bootstrap: collapse.js v3.3.7
@@ -1081,10 +1076,9 @@ define('skylark-bootstrap3/dropdown',[
   "skylark-utils-dom/eventer",
   "skylark-utils-dom/noder",
   "skylark-utils-dom/geom",
-  "skylark-utils-dom/velm",
   "skylark-utils-dom/query",
   "./bs3"
-],function(langx,browser,eventer,noder,geom,velm,$,bs3){
+],function(langx,browser,eventer,noder,geom,$,bs3){
 
 /* ========================================================================
  * Bootstrap: dropdown.js v3.3.7
@@ -1262,10 +1256,9 @@ define('skylark-bootstrap3/modal',[
   "skylark-utils-dom/eventer",
   "skylark-utils-dom/noder",
   "skylark-utils-dom/geom",
-  "skylark-utils-dom/velm",
   "skylark-utils-dom/query",
   "./bs3"
-],function(langx,browser,eventer,noder,geom,velm,$,bs3){
+],function(langx,browser,eventer,noder,geom,$,bs3){
 
 /* ========================================================================
  * Bootstrap: modal.js v3.3.7
@@ -1608,10 +1601,9 @@ define('skylark-bootstrap3/tooltip',[
   "skylark-utils-dom/eventer",
   "skylark-utils-dom/noder",
   "skylark-utils-dom/geom",
-  "skylark-utils-dom/velm",
   "skylark-utils-dom/query",
   "./bs3"
-],function(langx,browser,eventer,noder,geom,velm,$,bs3){
+],function(langx,browser,eventer,noder,geom,$,bs3){
 
 /* ========================================================================
  * Bootstrap: tooltip.js v3.3.7
@@ -2144,11 +2136,10 @@ define('skylark-bootstrap3/popover',[
   "skylark-utils-dom/browser",
   "skylark-langx/langx",
   "skylark-utils-dom/eventer",
-  "skylark-utils-dom/velm",
   "skylark-utils-dom/query",
   "./bs3",
   "./tooltip" 
-],function(browser,langx,eventer,velm,$,bs3,tooltip){
+],function(browser,langx,eventer,$,bs3,tooltip){
 /* ========================================================================
  * Bootstrap: popover.js v3.3.7
  * http://getbootstrap.com/javascript/#popovers
@@ -2262,10 +2253,9 @@ define('skylark-bootstrap3/scrollspy',[
   "skylark-utils-dom/eventer",
   "skylark-utils-dom/noder",
   "skylark-utils-dom/geom",
-  "skylark-utils-dom/velm",
   "skylark-utils-dom/query",
   "./bs3"
-],function(langx,browser,eventer,noder,geom,velm,$,bs3){
+],function(langx,browser,eventer,noder,geom,$,bs3){
 
 /* ========================================================================
  * Bootstrap: scrollspy.js v3.3.7
@@ -2439,10 +2429,9 @@ define('skylark-bootstrap3/tab',[
   "skylark-utils-dom/eventer",
   "skylark-utils-dom/noder",
   "skylark-utils-dom/geom",
-  "skylark-utils-dom/velm",
   "skylark-utils-dom/query",
   "./bs3"
-],function(langx,browser,eventer,noder,geom,velm,$,bs3){
+],function(langx,browser,eventer,noder,geom,$,bs3){
 
 /* ========================================================================
  * Bootstrap: tab.js v3.3.7
@@ -2604,10 +2593,9 @@ define('skylark-bootstrap3/transition',[
   "skylark-utils-dom/eventer",
   "skylark-utils-dom/noder",
   "skylark-utils-dom/geom",
-  "skylark-utils-dom/velm",
   "skylark-utils-dom/query",
   "./bs3"
-],function(langx,browser,eventer,noder,geom,velm,$,bs3){
+],function(langx,browser,eventer,noder,geom,$,bs3){
 
 /* ========================================================================
  * Bootstrap: transition.js v3.3.7

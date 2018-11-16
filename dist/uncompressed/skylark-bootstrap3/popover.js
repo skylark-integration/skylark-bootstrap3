@@ -2,11 +2,10 @@ define([
   "skylark-utils-dom/browser",
   "skylark-langx/langx",
   "skylark-utils-dom/eventer",
-  "skylark-utils-dom/velm",
   "skylark-utils-dom/query",
   "./bs3",
   "./tooltip" 
-],function(browser,langx,eventer,velm,$,bs3,tooltip){
+],function(browser,langx,eventer,$,bs3,tooltip){
 /* ========================================================================
  * Bootstrap: popover.js v3.3.7
  * http://getbootstrap.com/javascript/#popovers
