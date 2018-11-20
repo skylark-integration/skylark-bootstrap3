@@ -63,7 +63,7 @@ define([
       if (browser.support.transition) {
         if ($parent.hasClass('fade') ) {
           $parent.one('transitionEnd', removeElement)
-          .transitionEnd(Alert.TRANSITION_DURATION);
+          .emulateTransitionEnd(Alert.TRANSITION_DURATION);
         } else {
           removeElement();
         }

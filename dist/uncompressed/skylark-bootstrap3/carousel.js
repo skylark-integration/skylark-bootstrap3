@@ -195,7 +195,7 @@ define([
                         that.$element.trigger(slidEvent)
                     }, 0)
                 })
-                .transitionEnd()
+                .emulateTransitionEnd()
         } else {
             $active.removeClass('active')
             $next.addClass('active')

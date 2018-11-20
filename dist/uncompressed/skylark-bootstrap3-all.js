@@ -6033,7 +6033,7 @@ define('skylark-utils-dom/eventer',[
 
     }
 
-    if (browser.support.transitionEnd) {
+    if (browser.support.transition) {
         specialEvents.transitionEnd = {
 //          handle: function (e) {
 //            if ($(e.target).is(this)) return e.handleObj.handler.apply(this, arguments)
@@ -8926,7 +8926,7 @@ define('skylark-bootstrap3/alert',[
       if (browser.support.transition) {
         if ($parent.hasClass('fade') ) {
           $parent.one('transitionEnd', removeElement)
-          .transitionEnd(Alert.TRANSITION_DURATION);
+          .emulateTransitionEnd(Alert.TRANSITION_DURATION);
         } else {
           removeElement();
         }
@@ -9318,7 +9318,7 @@ define('skylark-bootstrap3/carousel',[
                         that.$element.trigger(slidEvent)
                     }, 0)
                 })
-                .transitionEnd()
+                .emulateTransitionEnd()
         } else {
             $active.removeClass('active')
             $next.addClass('active')
@@ -9486,7 +9486,7 @@ define('skylark-bootstrap3/collapse',[
 
       this.$element
         .one('transitionEnd', langx.proxy(complete, this))
-        .transitionEnd(Collapse.TRANSITION_DURATION)[dimension](this.$element[0][scrollSize])
+        .emulateTransitionEnd(Collapse.TRANSITION_DURATION)[dimension](this.$element[0][scrollSize])
     },
 
     hide : function () {
@@ -9523,8 +9523,8 @@ define('skylark-bootstrap3/collapse',[
 
       this.$element
         [dimension](0)
-        .one('transitionEnd', langx.proxy(complete, this))
-        .transitionEnd(Collapse.TRANSITION_DURATION)
+        .one('bsTransitionEnd', langx.proxy(complete, this))
+        .emulateTransitionEnd(Collapse.TRANSITION_DURATION)
     },
 
     toggle : function () {
@@ -9890,7 +9890,7 @@ define('skylark-bootstrap3/modal',[
             .one('transitionEnd', function () {
               that.$element.trigger('focus').trigger(e)
             })
-            .transitionEnd(Modal.TRANSITION_DURATION) :
+            .emulateTransitionEnd(Modal.TRANSITION_DURATION) :
           that.$element.trigger('focus').trigger(e)
       })
     },
@@ -9921,7 +9921,7 @@ define('skylark-bootstrap3/modal',[
       browser.support.transition && this.$element.hasClass('fade') ?
         this.$element
           .one('transitionEnd', langx.proxy(this.hideModal, this))
-          .transitionEnd(Modal.TRANSITION_DURATION) :
+          .emulateTransitionEnd(Modal.TRANSITION_DURATION) :
         this.hideModal()
     },
 
@@ -10007,7 +10007,7 @@ define('skylark-bootstrap3/modal',[
         doAnimate ?
           this.$backdrop
             .one('transitionEnd', callback)
-            .transitionEnd(Modal.BACKDROP_TRANSITION_DURATION) :
+            .emulateTransitionEnd(Modal.BACKDROP_TRANSITION_DURATION) :
           callback()
 
       } else if (!this.isShown && this.$backdrop) {
@@ -10020,7 +10020,7 @@ define('skylark-bootstrap3/modal',[
         browser.support.transition && this.$element.hasClass('fade') ?
           this.$backdrop
             .one('transitionEnd', callbackRemove)
-            .transitionEnd(Modal.BACKDROP_TRANSITION_DURATION) :
+            .emulateTransitionEnd(Modal.BACKDROP_TRANSITION_DURATION) :
           callbackRemove()
 
       } else if (callback) {
@@ -10358,7 +10358,7 @@ define('skylark-bootstrap3/tooltip',[
         browser.support.transition && this.$tip.hasClass('fade') ?
           $tip
             .one('transitionEnd', complete)
-            .transitionEnd(Tooltip.TRANSITION_DURATION) :
+            .emulateTransitionEnd(Tooltip.TRANSITION_DURATION) :
           complete()
       }
     },
@@ -10454,7 +10454,7 @@ define('skylark-bootstrap3/tooltip',[
       browser.support.transition && $tip.hasClass('fade') ?
         $tip
           .one('transitionEnd', complete)
-          .transitionEnd(Tooltip.TRANSITION_DURATION) :
+          .emulateTransitionEnd(Tooltip.TRANSITION_DURATION) :
         complete()
 
       this.hoverState = null
@@ -11075,7 +11075,7 @@ define('skylark-bootstrap3/tab',[
       $active.length && transition ?
         $active
           .one('transitionEnd', next)
-          .transitionEnd(Tab.TRANSITION_DURATION) :
+          .emulateTransitionEnd(Tab.TRANSITION_DURATION) :
         next()
 
       $active.removeClass('in')
@@ -11141,9 +11141,14 @@ define('skylark-bootstrap3/transition',[
   'use strict';
 
   // http://blog.alexmaccaw.com/css-transitions
-  $.fn.emulateTransitionEnd = function(duration) {
-    return this.transitionEnd();
-  };
+  $.fn.emulateTransitionEnd = function (duration) {
+    var called = false
+    var $el = this
+    $(this).one('transitionEnd', function () { called = true })
+    var callback = function () { if (!called) $($el).trigger(browser.support.transition.end) }
+    setTimeout(callback, duration)
+    return this
+  } 
 
   eventer.special.bsTransitionEnd = eventer.special.transitionEnd;
 });

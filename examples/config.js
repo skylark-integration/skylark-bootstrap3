@@ -16,7 +16,7 @@ requirejs.config({
          {
             name: 'skylark-bootstrap3',
 //            location: '../dist/js/uncompressed/skylark-ui-swt',
-            location: '../dist/skylark-bootstrap3',
+            location: '../src',
             main: 'main'
           }
       ],      

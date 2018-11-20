@@ -105,7 +105,7 @@ define([
             .one('transitionEnd', function () {
               that.$element.trigger('focus').trigger(e)
             })
-            .transitionEnd(Modal.TRANSITION_DURATION) :
+            .emulateTransitionEnd(Modal.TRANSITION_DURATION) :
           that.$element.trigger('focus').trigger(e)
       })
     },
@@ -136,7 +136,7 @@ define([
       browser.support.transition && this.$element.hasClass('fade') ?
         this.$element
           .one('transitionEnd', langx.proxy(this.hideModal, this))
-          .transitionEnd(Modal.TRANSITION_DURATION) :
+          .emulateTransitionEnd(Modal.TRANSITION_DURATION) :
         this.hideModal()
     },
 
@@ -222,7 +222,7 @@ define([
         doAnimate ?
           this.$backdrop
             .one('transitionEnd', callback)
-            .transitionEnd(Modal.BACKDROP_TRANSITION_DURATION) :
+            .emulateTransitionEnd(Modal.BACKDROP_TRANSITION_DURATION) :
           callback()
 
       } else if (!this.isShown && this.$backdrop) {
@@ -235,7 +235,7 @@ define([
         browser.support.transition && this.$element.hasClass('fade') ?
           this.$backdrop
             .one('transitionEnd', callbackRemove)
-            .transitionEnd(Modal.BACKDROP_TRANSITION_DURATION) :
+            .emulateTransitionEnd(Modal.BACKDROP_TRANSITION_DURATION) :
           callbackRemove()
 
       } else if (callback) {

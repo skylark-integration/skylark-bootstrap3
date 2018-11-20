@@ -111,7 +111,7 @@ define([
 
       this.$element
         .one('transitionEnd', langx.proxy(complete, this))
-        .transitionEnd(Collapse.TRANSITION_DURATION)[dimension](this.$element[0][scrollSize])
+        .emulateTransitionEnd(Collapse.TRANSITION_DURATION)[dimension](this.$element[0][scrollSize])
     },
 
     hide : function () {
@@ -148,8 +148,8 @@ define([
 
       this.$element
         [dimension](0)
-        .one('transitionEnd', langx.proxy(complete, this))
-        .transitionEnd(Collapse.TRANSITION_DURATION)
+        .one('bsTransitionEnd', langx.proxy(complete, this))
+        .emulateTransitionEnd(Collapse.TRANSITION_DURATION)
     },
 
     toggle : function () {
