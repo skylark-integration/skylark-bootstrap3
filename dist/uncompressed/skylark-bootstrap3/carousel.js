@@ -5,8 +5,9 @@ define([
     "skylark-utils-dom/noder",
     "skylark-utils-dom/geom",
     "skylark-utils-dom/query",
+    "skylark-utils-dom/plugins",
     "./bs3"
-], function(langx, browser, eventer, noder, geom, $, bs3) {
+], function(langx, browser, eventer, noder, geom, $, plugins, bs3) {
 
     /* ========================================================================
      * Bootstrap: carousel.js v3.3.7
@@ -21,13 +22,25 @@ define([
     // CAROUSEL CLASS DEFINITION
     // =========================
 
-    var Carousel = bs3.Carousel = bs3.WidgetBase.inherit({
+    var Carousel = bs3.Carousel = plugins.Plugin.inherit({
         klassName: "Carousel",
 
-        init: function(element, options) {
+        pluginName: "bs3.carousel",
+
+        options : {
+            interval: 5000,
+            pause: 'hover',
+            wrap: true,
+            keyboard: true
+
+        },
+
+        _construct: function(element, options) {
+            //this.options = options
+            this.overrided(element,options);
+
             this.$element = $(element)
             this.$indicators = this.$element.find('.carousel-indicators')
-            this.options = options
             this.paused = null
             this.sliding = null
             this.interval = null
@@ -211,7 +224,7 @@ define([
 
     // CAROUSEL PLUGIN DEFINITION
     // ==========================
-
+    /*
     function Plugin(option) {
         return this.each(function() {
             var $this = $(this)
@@ -231,22 +244,9 @@ define([
             }
         })
     }
+    */
+    plugins.register(Carousel,"carousel");
 
-    var old = $.fn.carousel
-
-    $.fn.carousel = Plugin
-    $.fn.carousel.Constructor = Carousel
-
-
-    // CAROUSEL NO CONFLICT
-    // ====================
-
-    $.fn.carousel.noConflict = function() {
-        $.fn.carousel = old
-        return this;
-    }
-
-
-    return $.fn.carousel;
+    return Carousel;
 
 });

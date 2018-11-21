@@ -595,8 +595,9 @@ define('skylark-bootstrap3/carousel',[
     "skylark-utils-dom/noder",
     "skylark-utils-dom/geom",
     "skylark-utils-dom/query",
+    "skylark-utils-dom/plugins",
     "./bs3"
-], function(langx, browser, eventer, noder, geom, $, bs3) {
+], function(langx, browser, eventer, noder, geom, $, plugins, bs3) {
 
     /* ========================================================================
      * Bootstrap: carousel.js v3.3.7
@@ -611,13 +612,25 @@ define('skylark-bootstrap3/carousel',[
     // CAROUSEL CLASS DEFINITION
     // =========================
 
-    var Carousel = bs3.Carousel = bs3.WidgetBase.inherit({
+    var Carousel = bs3.Carousel = plugins.Plugin.inherit({
         klassName: "Carousel",
 
-        init: function(element, options) {
+        pluginName: "bs3.carousel",
+
+        options : {
+            interval: 5000,
+            pause: 'hover',
+            wrap: true,
+            keyboard: true
+
+        },
+
+        _construct: function(element, options) {
+            //this.options = options
+            this.overrided(element,options);
+
             this.$element = $(element)
             this.$indicators = this.$element.find('.carousel-indicators')
-            this.options = options
             this.paused = null
             this.sliding = null
             this.interval = null
@@ -801,7 +814,7 @@ define('skylark-bootstrap3/carousel',[
 
     // CAROUSEL PLUGIN DEFINITION
     // ==========================
-
+    /*
     function Plugin(option) {
         return this.each(function() {
             var $this = $(this)
@@ -821,26 +834,13 @@ define('skylark-bootstrap3/carousel',[
             }
         })
     }
+    */
+    plugins.register(Carousel,"carousel");
 
-    var old = $.fn.carousel
-
-    $.fn.carousel = Plugin
-    $.fn.carousel.Constructor = Carousel
-
-
-    // CAROUSEL NO CONFLICT
-    // ====================
-
-    $.fn.carousel.noConflict = function() {
-        $.fn.carousel = old
-        return this;
-    }
-
-
-    return $.fn.carousel;
+    return Carousel;
 
 });
-define('skylark-bootstrap3/collapse',[
+define('skylark-bootstrap3/transition',[
   "skylark-langx/langx",
   "skylark-utils-dom/browser",
   "skylark-utils-dom/eventer",
@@ -849,6 +849,42 @@ define('skylark-bootstrap3/collapse',[
   "skylark-utils-dom/query",
   "./bs3"
 ],function(langx,browser,eventer,noder,geom,$,bs3){
+
+/* ========================================================================
+ * Bootstrap: transition.js v3.3.7
+ * http://getbootstrap.com/javascript/#transitions
+ * ========================================================================
+ * Copyright 2011-2016 Twitter, Inc.
+ * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
+ * ======================================================================== */
+
+  'use strict';
+
+  // http://blog.alexmaccaw.com/css-transitions
+  $.fn.emulateTransitionEnd = function (duration) {
+    var called = false
+    var $el = this
+    $(this).one('transitionEnd', function () { called = true })
+    var callback = function () { if (!called) $($el).trigger(browser.support.transition.end) }
+    setTimeout(callback, duration)
+    return this
+  } 
+
+  eventer.special.bsTransitionEnd = eventer.special.transitionEnd;
+});
+
+define('skylark-bootstrap3/collapse',[
+    "skylark-langx/langx",
+    "skylark-utils-dom/browser",
+    "skylark-utils-dom/eventer",
+    "skylark-utils-dom/noder",
+    "skylark-utils-dom/geom",
+    "skylark-utils-dom/query",
+    "skylark-utils-dom/plugins",
+    "./bs3",
+    "./transition"
+], function(langx, browser, eventer, noder, geom, $, plugins, bs3) {
+
 
 /* ========================================================================
  * Bootstrap: collapse.js v3.3.7
@@ -865,12 +901,20 @@ define('skylark-bootstrap3/collapse',[
   // COLLAPSE PUBLIC CLASS DEFINITION
   // ================================
 
-  var Collapse = bs3.Collapse = bs3.WidgetBase.inherit({
+  var Collapse = bs3.Collapse = plugins.Plugin.inherit({
     klassName: "Collapse",
 
-    init : function(element,options) {
+    pluginName : "bs3.collapse",
+
+    options : {
+      toggle: true
+    },
+
+    _construct : function(element,options) {
+      //this.options       = langx.mixin({}, Collapse.DEFAULTS, options)
+      this.overrided(element,options);
+
       this.$element      = $(element)
-      this.options       = langx.mixin({}, Collapse.DEFAULTS, options)
       this.$trigger      = $('[data-toggle="collapse"][href="#' + element.id + '"],' +
                              '[data-toggle="collapse"][data-target="#' + element.id + '"]')
       this.transitioning = null
@@ -884,20 +928,6 @@ define('skylark-bootstrap3/collapse',[
       if (this.options.toggle) {
         this.toggle();
       }
-
-      this.$element.on('click.bs.collapse.data-api', '[data-toggle="collapse"]', function (e) {
-        var $this   = $(this)
-
-        if (!$this.attr('data-target')) {
-          e.preventDefault();
-        }
-
-        var $target = getTargetFromTrigger($this);
-        var data    = $target.data('bs.collapse');
-        var option  = data ? 'toggle' : $this.data();
-
-        Plugin.call($target, option);
-      })
     },
 
     dimension : function () {
@@ -921,7 +951,8 @@ define('skylark-bootstrap3/collapse',[
       if (startEvent.isDefaultPrevented()) return
 
       if (actives && actives.length) {
-        Plugin.call(actives, 'hide')
+        //Plugin.call(actives, 'hide')
+        actives.collapse().hide();
         activesData || actives.data('bs.collapse', null)
       }
 
@@ -990,7 +1021,7 @@ define('skylark-bootstrap3/collapse',[
 
       this.$element
         [dimension](0)
-        .one('bsTransitionEnd', langx.proxy(complete, this))
+        .one('transitionEnd', langx.proxy(complete, this))
         .emulateTransitionEnd(Collapse.TRANSITION_DURATION)
     },
 
@@ -1040,6 +1071,7 @@ define('skylark-bootstrap3/collapse',[
   // COLLAPSE PLUGIN DEFINITION
   // ==========================
 
+  /*
   function Plugin(option) {
     return this.each(function () {
       var $this   = $(this)
@@ -1064,9 +1096,11 @@ define('skylark-bootstrap3/collapse',[
     $.fn.collapse = old
     return this
   }
+  */
 
+  plugins.register(Collapse,"collapse");
 
-  return $.fn.collapse;
+  return Collapse;
 
 });
 
@@ -2585,39 +2619,6 @@ define('skylark-bootstrap3/tab',[
 
   return $.fn.tab;
 
-});
-
-define('skylark-bootstrap3/transition',[
-  "skylark-langx/langx",
-  "skylark-utils-dom/browser",
-  "skylark-utils-dom/eventer",
-  "skylark-utils-dom/noder",
-  "skylark-utils-dom/geom",
-  "skylark-utils-dom/query",
-  "./bs3"
-],function(langx,browser,eventer,noder,geom,$,bs3){
-
-/* ========================================================================
- * Bootstrap: transition.js v3.3.7
- * http://getbootstrap.com/javascript/#transitions
- * ========================================================================
- * Copyright 2011-2016 Twitter, Inc.
- * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
- * ======================================================================== */
-
-  'use strict';
-
-  // http://blog.alexmaccaw.com/css-transitions
-  $.fn.emulateTransitionEnd = function (duration) {
-    var called = false
-    var $el = this
-    $(this).one('transitionEnd', function () { called = true })
-    var callback = function () { if (!called) $($el).trigger(browser.support.transition.end) }
-    setTimeout(callback, duration)
-    return this
-  } 
-
-  eventer.special.bsTransitionEnd = eventer.special.transitionEnd;
 });
 
 define('skylark-bootstrap3/main',[

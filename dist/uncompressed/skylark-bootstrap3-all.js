@@ -9121,6 +9121,507 @@ define('skylark-bootstrap3/button',[
   return $.fn.button;
 });
 
+define('skylark-utils-dom/elmx',[
+    "./dom",
+    "./langx",
+    "./datax",
+    "./eventer",
+    "./finder",
+    "./fx",
+    "./geom",
+    "./noder",
+    "./styler"
+], function(dom, langx, datax, eventer, finder, fx, geom, noder, styler) {
+    var map = Array.prototype.map,
+        slice = Array.prototype.slice;
+    /*
+     * VisualElement is a skylark class type wrapping a visule dom node,
+     * provides a number of prototype methods and supports chain calls.
+     */
+    var VisualElement = langx.klass({
+        klassName: "VisualElement",
+
+        "init": function(node) {
+            if (langx.isString(node)) {
+                node = document.getElementById(node);
+            }
+            this.domNode = node;
+        }
+    });
+    /*
+     * the VisualElement object wrapping document.body
+     */
+    var root = new VisualElement(document.body),
+        elmx = function(node) {
+            if (node) {
+                return new VisualElement(node);
+            } else {
+                return root;
+            }
+        };
+    /*
+     * Extend VisualElement prototype with wrapping the specified methods.
+     * @param {ArrayLike} fn
+     * @param {Object} context
+     */
+    function _delegator(fn, context) {
+        return function() {
+            var self = this,
+                elem = self.domNode,
+                ret = fn.apply(context, [elem].concat(slice.call(arguments)));
+
+            if (ret) {
+                if (ret === context) {
+                    return self;
+                } else {
+                    if (ret instanceof HTMLElement) {
+                        ret = new VisualElement(ret);
+                    } else if (langx.isArrayLike(ret)) {
+                        ret = map.call(ret, function(el) {
+                            if (el instanceof HTMLElement) {
+                                return new VisualElement(ret);
+                            } else {
+                                return el;
+                            }
+                        })
+                    }
+                }
+            }
+            return ret;
+        };
+    }
+
+    langx.mixin(elmx, {
+        batch: function(nodes, action, args) {
+            nodes.forEach(function(node) {
+                var elm = (node instanceof VisualElement) ? node : elmx(node);
+                elm[action].apply(elm, args);
+            });
+
+            return this;
+        },
+
+        root: new VisualElement(document.body),
+
+        VisualElement: VisualElement,
+
+        partial: function(name, fn) {
+            var props = {};
+
+            props[name] = fn;
+
+            VisualElement.partial(props);
+        },
+
+        delegate: function(names, context) {
+            var props = {};
+
+            names.forEach(function(name) {
+                props[name] = _delegator(context[name], context);
+            });
+
+            VisualElement.partial(props);
+        }
+    });
+
+    // from ./datax
+    elmx.delegate([
+        "attr",
+        "data",
+        "prop",
+        "removeAttr",
+        "removeData",
+        "text",
+        "val"
+    ], datax);
+
+    // from ./eventer
+    elmx.delegate([
+        "off",
+        "on",
+        "one",
+        "shortcuts",
+        "trigger"
+    ], eventer);
+
+    // from ./finder
+    elmx.delegate([
+        "ancestor",
+        "ancestors",
+        "children",
+        "descendant",
+        "find",
+        "findAll",
+        "firstChild",
+        "lastChild",
+        "matches",
+        "nextSibling",
+        "nextSiblings",
+        "parent",
+        "previousSibling",
+        "previousSiblings",
+        "siblings"
+    ], finder);
+
+    /*
+     * find a dom element matched by the specified selector.
+     * @param {String} selector
+     */
+    elmx.find = function(selector) {
+        if (selector === "body") {
+            return this.root;
+        } else {
+            return this.root.descendant(selector);
+        }
+    };
+
+    // from ./fx
+    elmx.delegate([
+        "animate",
+        "fadeIn",
+        "fadeOut",
+        "fadeTo",
+        "fadeToggle",
+        "hide",
+        "scrollToTop",
+        "show",
+        "toggle"
+    ], fx);
+
+
+    // from ./geom
+    elmx.delegate([
+        "borderExtents",
+        "boundingPosition",
+        "boundingRect",
+        "clientHeight",
+        "clientSize",
+        "clientWidth",
+        "contentRect",
+        "height",
+        "marginExtents",
+        "offsetParent",
+        "paddingExtents",
+        "pagePosition",
+        "pageRect",
+        "relativePosition",
+        "relativeRect",
+        "scrollIntoView",
+        "scrollLeft",
+        "scrollTop",
+        "size",
+        "width"
+    ], geom);
+
+    // from ./noder
+    elmx.delegate([
+        "after",
+        "append",
+        "before",
+        "clone",
+        "contains",
+        "contents",
+        "empty",
+        "html",
+        "isChildOf",
+        "ownerDoc",
+        "prepend",
+        "remove",
+        "removeChild",
+        "replace",
+        "reverse",
+        "throb",
+        "traverse",
+        "wrapper",
+        "wrapperInner",
+        "unwrap"
+    ], noder);
+
+    // from ./styler
+    elmx.delegate([
+        "addClass",
+        "className",
+        "css",
+        "hasClass",
+        "hide",
+        "isInvisible",
+        "removeClass",
+        "show",
+        "toggleClass"
+    ], styler);
+
+    // properties
+
+    var properties = [ 'position', 'left', 'top', 'right', 'bottom', 'width', 'height', 'border', 'borderLeft',
+    'borderTop', 'borderRight', 'borderBottom', 'borderColor', 'display', 'overflow', 'margin', 'marginLeft', 'marginTop', 'marginRight', 'marginBottom', 'padding', 'paddingLeft', 'paddingTop', 'paddingRight', 'paddingBottom', 'color',
+    'background', 'backgroundColor', 'opacity', 'fontSize', 'fontWeight', 'textAlign', 'textDecoration', 'textTransform', 'cursor', 'zIndex' ];
+
+    properties.forEach( function ( property ) {
+
+        var method = property;
+
+        VisualElement.prototype[method ] = function (value) {
+
+            this.css( property, value );
+
+            return this;
+
+        };
+
+    });
+
+    // events
+    var events = [ 'keyUp', 'keyDown', 'mouseOver', 'mouseOut', 'click', 'dblClick', 'change' ];
+
+    events.forEach( function ( event ) {
+
+        var method = event;
+
+        VisualElement.prototype[method ] = function ( callback ) {
+
+            this.on( event.toLowerCase(), callback);
+
+            return this;
+        };
+
+    });
+
+
+    return dom.elmx = elmx;
+});
+define('skylark-utils-dom/plugins',[
+    "./dom",
+    "./langx",
+    "./noder",
+    "./datax",
+    "./eventer",
+    "./finder",
+    "./geom",
+    "./styler",
+    "./fx",
+    "./query",
+    "./elmx"
+], function(dom, langx, noder, datax, eventer, finder, geom, styler, fx, $, elmx) {
+    "use strict";
+
+    var slice = Array.prototype.slice,
+        concat = Array.prototype.concat,
+        pluginKlasses = {};
+
+
+    /*
+     * Register a plugin type
+     */
+    function register( pluginKlass,shortcut) {
+        var name = pluginKlass.prototype.pluginName;
+        
+        pluginKlasses[name] = pluginKlass;
+
+        if (shortcut) {
+            elmx.partial(shortcut,$.fn[shortcut] = function(options) {
+                var args = slice.call(arguments,0);
+                args.unshift(name);
+                return this.plugin.apply(this,args);
+            });
+        }
+    }
+
+    /*
+     * Create or get a plugin instance assocated with the element,
+     * also you can execute the plugin method directory;
+     */
+    function instantiate(elm,pluginName,options) {
+
+        var pluginInstance = datax.data( elm, pluginName );
+
+        if (options === "instance") {
+            return pluginInstance;
+        }
+
+        var isMethodCall = typeof options === "string",
+            args = slice.call( arguments, 2 ),
+            returnValue = this;
+
+        if ( isMethodCall ) {
+            var methodName = options;
+
+            if ( !pluginInstance ) {
+                return langx.error( "cannot call methods on " + pluginName +
+                    " prior to initialization; " +
+                    "attempted to call method '" + methodName + "'" );
+            }
+
+            if ( !langx.isFunction( pluginInstance[ methodName ] ) || methodName.charAt( 0 ) === "_" ) {
+                return langx.error( "no such method '" + methodName + "' for " + pluginName +
+                    " plugin instance" );
+            }
+
+            return pluginInstance[ methodName ].apply( pluginInstance, args );
+
+        } else {
+            // Allow multiple hashes to be passed on init
+            if ( args.length ) {
+                options = langx.mixin.apply( langx, [{},options ].concat( args ) );
+            }
+
+            if ( pluginInstance ) {
+                pluginInstance.option( options || {} );
+            } else {
+                var pluginKlass = pluginKlasses[pluginName]; 
+                datax.data( elm, pluginName, new pluginKlass(elm,options));
+            }
+        }
+
+        return returnValue;
+    }
+
+    var Plugin =   langx.Evented.inherit({
+        klassName: "Plugin",
+
+        _construct : function(elm,options) {
+           this._elm = elm;
+           this._initOptions(options);
+        },
+
+        _initOptions : function(options) {
+          var ctor = this.constructor,
+              cache = ctor.cache = ctor.cache || {},
+              defaults = cache.defaults;
+          if (!defaults) {
+            var  ctors = [];
+            do {
+              ctors.unshift(ctor);
+              if (ctor === Plugin) {
+                break;
+              }
+              ctor = ctor.superclass;
+            } while (ctor);
+
+            defaults = cache.defaults = {};
+            for (var i=0;i<ctors.length;i++) {
+              ctor = ctors[i];
+              if (ctor.prototype.hasOwnProperty("options")) {
+                langx.mixin(defaults,ctor.prototype.options);
+              }
+            }
+          }
+          return this.options = langx.mixin({},defaults,options);
+        },
+
+
+        destroy: function() {
+            var that = this;
+
+            this._destroy();
+            // We can probably remove the unbind calls in 2.0
+            // all event bindings should go through this._on()
+            datax.removeData(this._elm,this.pluginName );
+        },
+
+        _destroy: langx.noop,
+
+        _delay: function( handler, delay ) {
+            function handlerProxy() {
+                return ( typeof handler === "string" ? instance[ handler ] : handler )
+                    .apply( instance, arguments );
+            }
+            var instance = this;
+            return setTimeout( handlerProxy, delay || 0 );
+        },
+
+        option: function( key, value ) {
+            var options = key;
+            var parts;
+            var curOption;
+            var i;
+
+            if ( arguments.length === 0 ) {
+
+                // Don't return a reference to the internal hash
+                return langx.mixin( {}, this.options );
+            }
+
+            if ( typeof key === "string" ) {
+
+                // Handle nested keys, e.g., "foo.bar" => { foo: { bar: ___ } }
+                options = {};
+                parts = key.split( "." );
+                key = parts.shift();
+                if ( parts.length ) {
+                    curOption = options[ key ] = langx.mixin( {}, this.options[ key ] );
+                    for ( i = 0; i < parts.length - 1; i++ ) {
+                        curOption[ parts[ i ] ] = curOption[ parts[ i ] ] || {};
+                        curOption = curOption[ parts[ i ] ];
+                    }
+                    key = parts.pop();
+                    if ( arguments.length === 1 ) {
+                        return curOption[ key ] === undefined ? null : curOption[ key ];
+                    }
+                    curOption[ key ] = value;
+                } else {
+                    if ( arguments.length === 1 ) {
+                        return this.options[ key ] === undefined ? null : this.options[ key ];
+                    }
+                    options[ key ] = value;
+                }
+            }
+
+            this._setOptions( options );
+
+            return this;
+        },
+
+        _setOptions: function( options ) {
+            var key;
+
+            for ( key in options ) {
+                this._setOption( key, options[ key ] );
+            }
+
+            return this;
+        },
+
+        _setOption: function( key, value ) {
+
+            this.options[ key ] = value;
+
+            return this;
+        }
+
+    });
+
+    $.fn.plugin = function(name,options) {
+        var args = slice.call( arguments, 1 ),
+            self = this,
+            returnValue = this;
+
+        this.each(function(){
+            returnValue = instantiate.apply(self,[this,name].concat(args));
+        });
+        return returnValue;
+    };
+
+    elmx.partial("plugin",function(name,options) {
+        var args = slice.call( arguments, 1 );
+        return instantiate.apply(this,[this,name].concat(args));
+    }); 
+
+
+    function plugins() {
+        return plugins;
+    }
+     
+    langx.mixin(plugins, {
+        instantiate : instantiate,
+        
+        Plugin : Plugin,
+
+        register : register
+
+    });
+
+    return plugins;
+});
 define('skylark-bootstrap3/carousel',[
     "skylark-langx/langx",
     "skylark-utils-dom/browser",
@@ -9128,8 +9629,9 @@ define('skylark-bootstrap3/carousel',[
     "skylark-utils-dom/noder",
     "skylark-utils-dom/geom",
     "skylark-utils-dom/query",
+    "skylark-utils-dom/plugins",
     "./bs3"
-], function(langx, browser, eventer, noder, geom, $, bs3) {
+], function(langx, browser, eventer, noder, geom, $, plugins, bs3) {
 
     /* ========================================================================
      * Bootstrap: carousel.js v3.3.7
@@ -9144,13 +9646,25 @@ define('skylark-bootstrap3/carousel',[
     // CAROUSEL CLASS DEFINITION
     // =========================
 
-    var Carousel = bs3.Carousel = bs3.WidgetBase.inherit({
+    var Carousel = bs3.Carousel = plugins.Plugin.inherit({
         klassName: "Carousel",
 
-        init: function(element, options) {
+        pluginName: "bs3.carousel",
+
+        options : {
+            interval: 5000,
+            pause: 'hover',
+            wrap: true,
+            keyboard: true
+
+        },
+
+        _construct: function(element, options) {
+            //this.options = options
+            this.overrided(element,options);
+
             this.$element = $(element)
             this.$indicators = this.$element.find('.carousel-indicators')
-            this.options = options
             this.paused = null
             this.sliding = null
             this.interval = null
@@ -9334,7 +9848,7 @@ define('skylark-bootstrap3/carousel',[
 
     // CAROUSEL PLUGIN DEFINITION
     // ==========================
-
+    /*
     function Plugin(option) {
         return this.each(function() {
             var $this = $(this)
@@ -9354,26 +9868,13 @@ define('skylark-bootstrap3/carousel',[
             }
         })
     }
+    */
+    plugins.register(Carousel,"carousel");
 
-    var old = $.fn.carousel
-
-    $.fn.carousel = Plugin
-    $.fn.carousel.Constructor = Carousel
-
-
-    // CAROUSEL NO CONFLICT
-    // ====================
-
-    $.fn.carousel.noConflict = function() {
-        $.fn.carousel = old
-        return this;
-    }
-
-
-    return $.fn.carousel;
+    return Carousel;
 
 });
-define('skylark-bootstrap3/collapse',[
+define('skylark-bootstrap3/transition',[
   "skylark-langx/langx",
   "skylark-utils-dom/browser",
   "skylark-utils-dom/eventer",
@@ -9382,6 +9883,42 @@ define('skylark-bootstrap3/collapse',[
   "skylark-utils-dom/query",
   "./bs3"
 ],function(langx,browser,eventer,noder,geom,$,bs3){
+
+/* ========================================================================
+ * Bootstrap: transition.js v3.3.7
+ * http://getbootstrap.com/javascript/#transitions
+ * ========================================================================
+ * Copyright 2011-2016 Twitter, Inc.
+ * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
+ * ======================================================================== */
+
+  'use strict';
+
+  // http://blog.alexmaccaw.com/css-transitions
+  $.fn.emulateTransitionEnd = function (duration) {
+    var called = false
+    var $el = this
+    $(this).one('transitionEnd', function () { called = true })
+    var callback = function () { if (!called) $($el).trigger(browser.support.transition.end) }
+    setTimeout(callback, duration)
+    return this
+  } 
+
+  eventer.special.bsTransitionEnd = eventer.special.transitionEnd;
+});
+
+define('skylark-bootstrap3/collapse',[
+    "skylark-langx/langx",
+    "skylark-utils-dom/browser",
+    "skylark-utils-dom/eventer",
+    "skylark-utils-dom/noder",
+    "skylark-utils-dom/geom",
+    "skylark-utils-dom/query",
+    "skylark-utils-dom/plugins",
+    "./bs3",
+    "./transition"
+], function(langx, browser, eventer, noder, geom, $, plugins, bs3) {
+
 
 /* ========================================================================
  * Bootstrap: collapse.js v3.3.7
@@ -9398,12 +9935,20 @@ define('skylark-bootstrap3/collapse',[
   // COLLAPSE PUBLIC CLASS DEFINITION
   // ================================
 
-  var Collapse = bs3.Collapse = bs3.WidgetBase.inherit({
+  var Collapse = bs3.Collapse = plugins.Plugin.inherit({
     klassName: "Collapse",
 
-    init : function(element,options) {
+    pluginName : "bs3.collapse",
+
+    options : {
+      toggle: true
+    },
+
+    _construct : function(element,options) {
+      //this.options       = langx.mixin({}, Collapse.DEFAULTS, options)
+      this.overrided(element,options);
+
       this.$element      = $(element)
-      this.options       = langx.mixin({}, Collapse.DEFAULTS, options)
       this.$trigger      = $('[data-toggle="collapse"][href="#' + element.id + '"],' +
                              '[data-toggle="collapse"][data-target="#' + element.id + '"]')
       this.transitioning = null
@@ -9417,20 +9962,6 @@ define('skylark-bootstrap3/collapse',[
       if (this.options.toggle) {
         this.toggle();
       }
-
-      this.$element.on('click.bs.collapse.data-api', '[data-toggle="collapse"]', function (e) {
-        var $this   = $(this)
-
-        if (!$this.attr('data-target')) {
-          e.preventDefault();
-        }
-
-        var $target = getTargetFromTrigger($this);
-        var data    = $target.data('bs.collapse');
-        var option  = data ? 'toggle' : $this.data();
-
-        Plugin.call($target, option);
-      })
     },
 
     dimension : function () {
@@ -9454,7 +9985,8 @@ define('skylark-bootstrap3/collapse',[
       if (startEvent.isDefaultPrevented()) return
 
       if (actives && actives.length) {
-        Plugin.call(actives, 'hide')
+        //Plugin.call(actives, 'hide')
+        actives.collapse().hide();
         activesData || actives.data('bs.collapse', null)
       }
 
@@ -9523,7 +10055,7 @@ define('skylark-bootstrap3/collapse',[
 
       this.$element
         [dimension](0)
-        .one('bsTransitionEnd', langx.proxy(complete, this))
+        .one('transitionEnd', langx.proxy(complete, this))
         .emulateTransitionEnd(Collapse.TRANSITION_DURATION)
     },
 
@@ -9573,6 +10105,7 @@ define('skylark-bootstrap3/collapse',[
   // COLLAPSE PLUGIN DEFINITION
   // ==========================
 
+  /*
   function Plugin(option) {
     return this.each(function () {
       var $this   = $(this)
@@ -9597,9 +10130,11 @@ define('skylark-bootstrap3/collapse',[
     $.fn.collapse = old
     return this
   }
+  */
 
+  plugins.register(Collapse,"collapse");
 
-  return $.fn.collapse;
+  return Collapse;
 
 });
 
@@ -11118,39 +11653,6 @@ define('skylark-bootstrap3/tab',[
 
   return $.fn.tab;
 
-});
-
-define('skylark-bootstrap3/transition',[
-  "skylark-langx/langx",
-  "skylark-utils-dom/browser",
-  "skylark-utils-dom/eventer",
-  "skylark-utils-dom/noder",
-  "skylark-utils-dom/geom",
-  "skylark-utils-dom/query",
-  "./bs3"
-],function(langx,browser,eventer,noder,geom,$,bs3){
-
-/* ========================================================================
- * Bootstrap: transition.js v3.3.7
- * http://getbootstrap.com/javascript/#transitions
- * ========================================================================
- * Copyright 2011-2016 Twitter, Inc.
- * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
- * ======================================================================== */
-
-  'use strict';
-
-  // http://blog.alexmaccaw.com/css-transitions
-  $.fn.emulateTransitionEnd = function (duration) {
-    var called = false
-    var $el = this
-    $(this).one('transitionEnd', function () { called = true })
-    var callback = function () { if (!called) $($el).trigger(browser.support.transition.end) }
-    setTimeout(callback, duration)
-    return this
-  } 
-
-  eventer.special.bsTransitionEnd = eventer.special.transitionEnd;
 });
 
 define('skylark-bootstrap3/main',[

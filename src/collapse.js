@@ -1,12 +1,15 @@
 define([
-  "skylark-langx/langx",
-  "skylark-utils-dom/browser",
-  "skylark-utils-dom/eventer",
-  "skylark-utils-dom/noder",
-  "skylark-utils-dom/geom",
-  "skylark-utils-dom/query",
-  "./bs3"
-],function(langx,browser,eventer,noder,geom,$,bs3){
+    "skylark-langx/langx",
+    "skylark-utils-dom/browser",
+    "skylark-utils-dom/eventer",
+    "skylark-utils-dom/noder",
+    "skylark-utils-dom/geom",
+    "skylark-utils-dom/query",
+    "skylark-utils-dom/plugins",
+    "./bs3",
+    "./transition"
+], function(langx, browser, eventer, noder, geom, $, plugins, bs3) {
+
 
 /* ========================================================================
  * Bootstrap: collapse.js v3.3.7
@@ -23,12 +26,20 @@ define([
   // COLLAPSE PUBLIC CLASS DEFINITION
   // ================================
 
-  var Collapse = bs3.Collapse = bs3.WidgetBase.inherit({
+  var Collapse = bs3.Collapse = plugins.Plugin.inherit({
     klassName: "Collapse",
 
-    init : function(element,options) {
+    pluginName : "bs3.collapse",
+
+    options : {
+      toggle: true
+    },
+
+    _construct : function(element,options) {
+      //this.options       = langx.mixin({}, Collapse.DEFAULTS, options)
+      this.overrided(element,options);
+
       this.$element      = $(element)
-      this.options       = langx.mixin({}, Collapse.DEFAULTS, options)
       this.$trigger      = $('[data-toggle="collapse"][href="#' + element.id + '"],' +
                              '[data-toggle="collapse"][data-target="#' + element.id + '"]')
       this.transitioning = null
@@ -42,20 +53,6 @@ define([
       if (this.options.toggle) {
         this.toggle();
       }
-
-      this.$element.on('click.bs.collapse.data-api', '[data-toggle="collapse"]', function (e) {
-        var $this   = $(this)
-
-        if (!$this.attr('data-target')) {
-          e.preventDefault();
-        }
-
-        var $target = getTargetFromTrigger($this);
-        var data    = $target.data('bs.collapse');
-        var option  = data ? 'toggle' : $this.data();
-
-        Plugin.call($target, option);
-      })
     },
 
     dimension : function () {
@@ -79,7 +76,8 @@ define([
       if (startEvent.isDefaultPrevented()) return
 
       if (actives && actives.length) {
-        Plugin.call(actives, 'hide')
+        //Plugin.call(actives, 'hide')
+        actives.collapse().hide();
         activesData || actives.data('bs.collapse', null)
       }
 
@@ -148,7 +146,7 @@ define([
 
       this.$element
         [dimension](0)
-        .one('bsTransitionEnd', langx.proxy(complete, this))
+        .one('transitionEnd', langx.proxy(complete, this))
         .emulateTransitionEnd(Collapse.TRANSITION_DURATION)
     },
 
@@ -198,6 +196,7 @@ define([
   // COLLAPSE PLUGIN DEFINITION
   // ==========================
 
+  /*
   function Plugin(option) {
     return this.each(function () {
       var $this   = $(this)
@@ -222,8 +221,10 @@ define([
     $.fn.collapse = old
     return this
   }
+  */
 
+  plugins.register(Collapse,"collapse");
 
-  return $.fn.collapse;
+  return Collapse;
 
 });

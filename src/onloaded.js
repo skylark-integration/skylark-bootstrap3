@@ -61,6 +61,20 @@ define([
 				$this.carousel($this.data());
 			});
 
+			// COLLAPSE DATA-API
+			// =================
+  		    $(document).on('click.bs.collapse.data-api', '[data-toggle="collapse"]', function (e) {
+			    var $this   = $(this)
+
+			    if (!$this.attr('data-target')) e.preventDefault()
+
+			    var $target = getTargetFromTrigger($this)
+			    var data    = $target.data('bs.collapse')
+			    var option  = data ? 'toggle' : $this.data()
+
+			    $target.collapse(option);
+		    });
+
 		    // Dropdown DATA-API
 		    // =================
 			$('[data-ride="dropdown"]').each(function () {
