@@ -61,6 +61,25 @@ define([
 				$this.carousel($this.data());
 			});
 
+            $(document).on("click.bs.carousel.data-api", "[data-slide],[data-slide-to]", function(e) {
+	            var href
+	            var $this = $(this)
+	            var $target = $($this.attr('data-target') || (href = $this.attr('href')) && href.replace(/.*(?=#[^\s]+$)/, '')) // strip for ie7
+	            if (!$target.hasClass('carousel')) return
+	            var options = langx.mixin({}, $target.data(), $this.data());
+	            var slideIndex = $this.attr('data-slide-to')
+	            if (slideIndex) options.interval = false
+
+	            $target.carousel(options);
+
+	            if (slideIndex) {
+	                $target.data('bs.carousel').to(slideIndex);
+	            }
+
+	            e.preventDefault();
+
+	        });
+ 
 			// COLLAPSE DATA-API
 			// =================
   		    $(document).on('click.bs.collapse.data-api', '[data-toggle="collapse"]', function (e) {
