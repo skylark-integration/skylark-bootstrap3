@@ -29,7 +29,6 @@ define([
       // jscs:disable requireDollarBeforejQueryAssignment
       this.element = $(element)
       this.target = options && options.target;
-      $('[data-toggle="dropdown"]',element).dropdown();
 
       // jscs:enable requireDollarBeforejQueryAssignment
       this.element.on("click.bs.tab.data-api",langx.proxy(function(e){
