@@ -2469,6 +2469,7 @@ define('skylark-bootstrap3/tab',[
     init : function(element,options) {
       // jscs:disable requireDollarBeforejQueryAssignment
       this.element = $(element)
+      this.target = options && options.target;
       $('[data-toggle="dropdown"]',element).dropdown();
 
       // jscs:enable requireDollarBeforejQueryAssignment
@@ -2481,11 +2482,8 @@ define('skylark-bootstrap3/tab',[
     show : function () {
       var $this    = this.element
       var $ul      = $this.closest('ul:not(.dropdown-menu)')
-      var selector = this.options.target || $this.data('target');
+      var selector = this.target || $this.data('target');
 
-      if (this.options.target) {
-
-      }
       if (!selector) {
         selector = $this.attr('href')
         selector = selector && selector.replace(/.*(?=#[^\s]*$)/, '') // strip for ie7
@@ -2585,7 +2583,7 @@ define('skylark-bootstrap3/tab',[
       var $this = $(this)
       var data  = $this.data('bs.tab')
 
-      if (!data) $this.data('bs.tab', (data = new Tab(this)))
+      if (!data) $this.data('bs.tab', (data = new Tab(this,option)))
       if (typeof option == 'string') data[option]()
     })
   }
