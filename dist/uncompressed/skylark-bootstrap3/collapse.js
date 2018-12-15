@@ -223,7 +223,21 @@ define([
   }
   */
 
-  plugins.register(Collapse,"collapse");
+  plugins.register(Collapse);
+
+  $.fn.collapse = function(option) {
+    return this.each(function () {
+      var $this   = $(this)
+      var plugin    = plugins.instantiate(this,'bs3.collapse',"instance");
+      var options = langx.mixin({}, Collapse.DEFAULTS, $this.data(), typeof option == 'object' && option)
+
+      if (!plugin && options.toggle && /show|hide/.test(option)) options.toggle = false
+      if (!plugin) {
+          plugin = plugins.instantiate(this,'bs3.collapse',options);
+      }
+      if (typeof option == 'string') plugin[option]()
+    });
+  };
 
   return Collapse;
 

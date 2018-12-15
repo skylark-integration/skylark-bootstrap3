@@ -5,8 +5,9 @@ define([
   "skylark-utils-dom/noder",
   "skylark-utils-dom/geom",
   "skylark-utils-dom/query",
+  "skylark-utils-dom/plugins",
   "./bs3"
-],function(langx,browser,eventer,noder,geom,$,bs3){
+],function(langx,browser,eventer,noder,geom,$,plugins,bs3){
 
 /* ========================================================================
  * Bootstrap: alert.js v3.3.7
@@ -23,10 +24,12 @@ define([
 
   var dismiss = '[data-dismiss="alert"]';
 
-  var Alert = bs3.Alert = bs3.WidgetBase.inherit({
+  var Alert = bs3.Alert = plugins.Plugin.inherit({
     klassName: "Alert",
 
-    init : function(el,options) {
+    pluginName : "bs3.alert",
+
+    _construct : function(el,options) {
       $(el).on('click', dismiss, this.close)
     },
 
@@ -78,7 +81,7 @@ define([
   Alert.TRANSITION_DURATION = 150;
 
 
-
+  /*
   // ALERT PLUGIN DEFINITION
   // =======================
 
@@ -111,4 +114,20 @@ define([
   }
 
   return $.fn.alert;
+  */
+
+  plugins.register(Alert);
+
+  $.fn.alert = function(options) {
+    return this.each(function () {
+      var options = typeof option == 'object' && option
+      var  plugin = plugins.instantiate(this, "bs3.alert",options);
+      if (typeof option == 'string') {
+        plugin[option]()
+      }
+    });
+  };
+
+  return Alert;
+
 });

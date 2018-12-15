@@ -5,8 +5,9 @@ define([
   "skylark-utils-dom/noder",
   "skylark-utils-dom/geom",
   "skylark-utils-dom/query",
+  "skylark-utils-dom/plugins",
   "./bs3"
-],function(langx,browser,eventer,noder,geom,$,bs3){
+],function(langx,browser,eventer,noder,geom,$,plugins,bs3){
 
 /* ========================================================================
  * Bootstrap: scrollspy.js v3.3.7
@@ -21,10 +22,12 @@ define([
   // SCROLLSPY CLASS DEFINITION
   // ==========================
 
-  var ScrollSpy = bs3.ScrollSpy = bs3.WidgetBase.inherit({
+  var ScrollSpy = bs3.ScrollSpy = plugins.Plugin.inherit({
     klassName: "ScrollSpy",
 
-    init : function(element,options) {
+    pluginName : "bs3.scrollspy",
+
+    _construct : function(element,options) {
       this.$body          = $(document.body)
       this.$scrollElement = $(element).is(document.body) ? $(window) : $(element)
       this.options        = langx.mixin({}, ScrollSpy.DEFAULTS, options)
@@ -142,6 +145,8 @@ define([
     offset: 10
   }
 
+  /*
+
   // SCROLLSPY PLUGIN DEFINITION
   // ===========================
   var old = $.fn.scrollspy;
@@ -171,5 +176,20 @@ define([
 
 
   return $.fn.scrollspy;
+  */
+
+  plugins.register(ScrollSpy);
+
+  $.fn.scrollspy = function(options) {
+    return this.each(function () {
+      var options = typeof option == 'object' && option
+      var  plugin = plugins.instantiate(this, "bs3.scrollspy",options);
+      if (typeof option == 'string') {
+        plugin[option]()
+      }
+    });
+  };
+
+  return ScrollSpy;
 
 });

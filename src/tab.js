@@ -5,8 +5,9 @@ define([
   "skylark-utils-dom/noder",
   "skylark-utils-dom/geom",
   "skylark-utils-dom/query",
+  "skylark-utils-dom/plugins",
   "./bs3"
-],function(langx,browser,eventer,noder,geom,$,bs3){
+],function(langx,browser,eventer,noder,geom,$,plugins,bs3){
 
 /* ========================================================================
  * Bootstrap: tab.js v3.3.7
@@ -22,10 +23,12 @@ define([
   // ====================
 
 
-  var Tab = bs3.Tab = bs3.WidgetBase.inherit({
+  var Tab = bs3.Tab = plugins.Plugin.inherit({
     klassName: "Tab",
 
-    init : function(element,options) {
+    pluginName : "bs3.tab",
+
+    _construct : function(element,options) {
       // jscs:disable requireDollarBeforejQueryAssignment
       this.element = $(element)
       this.target = options && options.target;
@@ -133,6 +136,7 @@ define([
 
   Tab.TRANSITION_DURATION = 150
 
+  /*
   // TAB PLUGIN DEFINITION
   // =====================
 
@@ -161,5 +165,20 @@ define([
   }
 
   return $.fn.tab;
+  */
+
+  plugins.register(Tab);
+
+  $.fn.tab = function(options) {
+    return this.each(function () {
+      var options = typeof option == 'object' && option
+      var  plugin = plugins.instantiate(this, "bs3.tab",options);
+      if (typeof option == 'string') {
+        plugin[option]()
+      }
+    });
+  };
+
+  return Tab;
 
 });

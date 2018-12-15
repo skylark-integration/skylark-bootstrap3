@@ -29,9 +29,9 @@
 
   <div id="carousel-example-generic" class="carousel slide" data-ride="carousel">
     <ol class="carousel-indicators">
-      <li data-target="#carousel-example-generic" data-slide-to="0" class="active"></li>
-      <li data-target="#carousel-example-generic" data-slide-to="1" class=""></li>
-      <li data-target="#carousel-example-generic" data-slide-to="2" class=""></li>
+      <li data-slide-to="0" class="active"></li>
+      <li data-slide-to="1" class=""></li>
+      <li data-slide-to="2" class=""></li>
     </ol>
     <div class="carousel-inner">
       <div class="item carousel-item active">
@@ -44,10 +44,10 @@
         <img alt="Third slide" src="http://38.media.tumblr.com/tumblr_m8tb2rVsD31qa42jro1_1280.jpg">
       </div>
     </div>
-    <a class="left carousel-control carousel-control-prev" href="#carousel-example-generic" data-slide="prev">
+    <a class="left carousel-control carousel-control-prev"  data-slide="prev">
       <span class="glyphicon glyphicon-chevron-left carousel-control-prev-icon" ></span>
     </a>
-    <a class="right carousel-control carousel-control-next" href="#carousel-example-generic" data-slide="next">
+    <a class="right carousel-control carousel-control-next" data-slide="next">
       <span class="glyphicon glyphicon-chevron-right carousel-control-next-icon"></span>
     </a>
   </div>
@@ -55,7 +55,7 @@
 </div>
 
 <!-- JavaScript Includes -->
-<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.3/require.min.js" data-main="./config.js"></script>
+<script type="text/javascript" src="./requirejs/require.js" data-main="./config.js"></script>
 <!--    <script src="../vendor/jquery.min.js"></script>
     <script src="../dist/js/bootstrap.js"></script>
 <script src="../vendor/jquery.min.js"></script>
@@ -69,7 +69,12 @@
           $('[data-ride="carousel"]').carousel({
             interval:0
           }); 
+          $('[data-ride="carousel"]').focus();
+          $(document).on("keydown",function(evt){
+            console.log(evt.keyCode);
+          })
         }); 
+
     };
 </script>
 </body>

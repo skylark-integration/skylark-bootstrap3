@@ -6,7 +6,8 @@ define([
     "skylark-utils-dom/geom",
     "skylark-utils-dom/query",
     "skylark-utils-dom/plugins",
-    "./bs3"
+    "./bs3",
+    "./transition"
 ], function(langx, browser, eventer, noder, geom, $, plugins, bs3) {
 
     /* ========================================================================
@@ -47,12 +48,29 @@ define([
             this.$active = null
             this.$items = null
 
-            this.options.keyboard && this.$element.on('keydown.bs.carousel', langx.proxy(this.keydown, this))
+            var self = this;
+            if (!this.options.embeded) {
+                this.options.keyboard && this.$element.on('keydown.bs.carousel', langx.proxy(this.keydown, this))
 
-            this.options.pause == 'hover' && !('ontouchstart' in document.documentElement) && this.$element
-                .on('mouseenter.bs.carousel', langx.proxy(this.pause, this))
-                .on('mouseleave.bs.carousel', langx.proxy(this.cycle, this));
+                this.options.pause == 'hover' && !('ontouchstart' in document.documentElement) && this.$element
+                    .on('mouseenter.bs3.carousel', langx.proxy(this.pause, this))
+                    .on('mouseleave.bs3.carousel', langx.proxy(this.cycle, this));
 
+                this.$element.on("click.bs3.carousel.data-api", "[data-slide],[data-slide-to]", function(e) {
+                    var $this = $(this),
+                        slide = $this.attr('data-slide'),
+                        slideIndex = $this.attr('data-slide-to');
+
+                    if (slide == "prev") {
+                        self.prev();
+                    } else if (slide == "next") {
+                        self.next();
+                    } else  if (slideIndex) {
+                        self.to(slideIndex);
+                    }
+                    e.preventDefault();
+                });
+            }
         }
     });
 
@@ -227,7 +245,27 @@ define([
         })
     }
     */
-    plugins.register(Carousel,"carousel");
+    plugins.register(Carousel);
+
+    $.fn.carousel = function(option) {
+        return this.each(function () {
+            var $this = $(this)
+            var plugin = plugins.instantiate(this,'bs3.carousel',"instance");
+            var options = langx.mixin({}, Carousel.DEFAULTS, $this.data(), typeof option == 'object' && option)
+            var action = typeof option == 'string' ? option : options.slide
+
+            if (!plugin) {
+                plugin = plugins.instantiate(this,'bs3.carousel',options);
+            }
+            if (typeof option == 'number') {
+                plugin.to(option);
+            } else if (action) {
+                plugin[action]()
+            } else if (options.interval) {
+                plugin.pause().cycle();
+            }
+        });
+    };
 
     return Carousel;
 

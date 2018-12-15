@@ -5,8 +5,9 @@ define([
   "skylark-utils-dom/noder",
   "skylark-utils-dom/geom",
   "skylark-utils-dom/query",
+  "skylark-utils-dom/plugins",
   "./bs3"
-],function(langx,browser,eventer,noder,geom,$,bs3){
+],function(langx,browser,eventer,noder,geom,$,plugins,bs3){
 
 /* ========================================================================
  * Bootstrap: modal.js v3.3.7
@@ -21,10 +22,12 @@ define([
   // MODAL CLASS DEFINITION
   // ======================
 
-  var Modal = bs3.Modal = bs3.WidgetBase.inherit({
+  var Modal = bs3.Modal = plugins.Plugin.inherit({
     klassName: "Modal",
 
-    init : function(element,options) {
+    pluginName : "bs3.modal",
+
+    _construct : function(element,options) {
       this.options             = options;
       this.$container               = $(options.container || document.body)
       this.$element            = $(element)
@@ -308,7 +311,7 @@ define([
     show: true
   }
 
-
+  /*
 
   // MODAL PLUGIN DEFINITION
   // =======================
@@ -341,4 +344,28 @@ define([
 
 
   return $.fn.modal;
+  */
+
+  plugins.register(Modal);
+
+  $.fn.modal = function(options,_relatedTarget) {
+    return this.each(function () {
+      var $this   = $(this)
+      var plugin    = plugins.instantiate(this,'bs3.modal',"instance");
+      var options = langx.mixin({}, Modal.DEFAULTS, $this.data(), typeof option == 'object' && option)
+
+      if (!plugin && options.toggle && /show|hide/.test(option)) options.toggle = false
+      if (!plugin) {
+          plugin = plugins.instantiate(this,'bs3.modal',options);
+      }
+      if (typeof option == 'string') {
+        plugin[option](_relatedTarget);
+      } else if (options.show) {
+        plugin.show(_relatedTarget);
+      }
+    });
+  };
+
+  return Modal;
+
 });

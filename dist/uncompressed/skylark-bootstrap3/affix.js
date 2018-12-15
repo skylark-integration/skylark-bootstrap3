@@ -5,8 +5,9 @@ define([
   "skylark-utils-dom/noder",
   "skylark-utils-dom/geom",
   "skylark-utils-dom/query",
+  "skylark-utils-dom/plugins",
   "./bs3"
-],function(langx,browser,eventer,noder,geom,$,bs3){
+],function(langx,browser,eventer,noder,geom,$,plugins,bs3){
 
 
 /* ========================================================================
@@ -22,10 +23,12 @@ define([
   // AFFIX CLASS DEFINITION
   // ======================
 
-  var Affix = bs3.Affix = bs3.WidgetBase.inherit({
+  var Affix = bs3.Affix = plugins.Plugin.inherit({
         klassName: "Affix",
 
-        init : function(element,options) {
+        pluginName : "bs3.affix",
+
+        _construct : function(element,options) {
           this.options = langx.mixin({}, Affix.DEFAULTS, options)
 
           this.$target = $(this.options.target)
@@ -127,7 +130,7 @@ define([
   }
 
 
-
+  /*
   // AFFIX PLUGIN DEFINITION
   // =======================
 
@@ -158,4 +161,19 @@ define([
 
 
   return $.fn.affix;
+  */
+
+  plugins.register(Affix);
+
+  $.fn.affix = function(option) {
+    return this.each(function () {
+      var options = typeof option == 'object' && option
+      var  plugin = plugins.instantiate(this, "bs3.affix",options);
+      if (typeof option == 'string') {
+        plugin[option]()
+      }
+    });
+  };
+
+  return Affix;
 });

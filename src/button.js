@@ -5,8 +5,9 @@ define([
   "skylark-utils-dom/noder",
   "skylark-utils-dom/geom",
   "skylark-utils-dom/query",
+  "skylark-utils-dom/plugins",
   "./bs3"
-],function(langx,browser,eventer,noder,geom,$,bs3){
+],function(langx,browser,eventer,noder,geom,$,plugins,bs3){
 
 /* ========================================================================
  * Bootstrap: button.js v3.3.7
@@ -21,10 +22,12 @@ define([
   // BUTTON PUBLIC CLASS DEFINITION
   // ==============================
 
-  var Button = bs3.Button = bs3.WidgetBase.inherit({
+  var Button = bs3.Button = plugins.Plugin.inherit({
     klassName: "Button",
 
-    init : function(element,options) {
+    pluginName : "bs3.button",
+
+    _construct : function(element,options) {
       var $el = this.$element  = $(element)
       this.options   = langx.mixin({}, Button.DEFAULTS, options)
       this.isLoading = false
@@ -106,6 +109,7 @@ define([
 
   // BUTTON PLUGIN DEFINITION
   // ========================
+  /*
 
   function Plugin(option) {
     return this.each(function () {
@@ -141,4 +145,20 @@ define([
 
 
   return $.fn.button;
+  */
+
+  plugins.register(Button);
+
+  $.fn.button = function(options) {
+    return this.each(function () {
+      var  plugin = plugins.instantiate(this, "bs3.button");
+      if (options == 'toggle') {
+        plugin.toggle();
+      } else if (options) {
+        plugin.setState(options);
+      }
+    });
+  };
+
+  return Button;
 });

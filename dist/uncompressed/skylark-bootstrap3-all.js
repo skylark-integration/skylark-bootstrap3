@@ -1424,6 +1424,7 @@ define('skylark-langx/funcs',[
 	"./types"
 ],function(objects,types){
 	var mixin = objects.mixin,
+        slice = Array.prototype.slice,
         isFunction = types.isFunction,
         isString = types.isString;
 
@@ -8613,514 +8614,6 @@ define('skylark-utils-dom/query',[
     return dom.query = query;
 
 });
-define('skylark-bootstrap3/bs3',[
-  "skylark-utils-dom/skylark",
-  "skylark-langx/langx",
-  "skylark-utils-dom/browser",
-  "skylark-utils-dom/eventer",
-  "skylark-utils-dom/noder",
-  "skylark-utils-dom/geom",
-  "skylark-utils-dom/query"
-],function(skylark,langx,browser,eventer,noder,geom,$){
-	var ui = skylark.ui = skylark.ui || {}, 
-		bs3 = ui.bs3 = {};
-
-/*---------------------------------------------------------------------------------*/
-	/*
-	 * Fuel UX utilities.js
-	 * https://github.com/ExactTarget/fuelux
-	 *
-	 * Copyright (c) 2014 ExactTarget
-	 * Licensed under the BSD New license.
-	 */
-	var CONST = {
-		BACKSPACE_KEYCODE: 8,
-		COMMA_KEYCODE: 188, // `,` & `<`
-		DELETE_KEYCODE: 46,
-		DOWN_ARROW_KEYCODE: 40,
-		ENTER_KEYCODE: 13,
-		TAB_KEYCODE: 9,
-		UP_ARROW_KEYCODE: 38
-	};
-
-	var isShiftHeld = function isShiftHeld (e) { return e.shiftKey === true; };
-
-	var isKey = function isKey (keyCode) {
-		return function compareKeycodes (e) {
-			return e.keyCode === keyCode;
-		};
-	};
-
-	var isBackspaceKey = isKey(CONST.BACKSPACE_KEYCODE);
-	var isDeleteKey = isKey(CONST.DELETE_KEYCODE);
-	var isTabKey = isKey(CONST.TAB_KEYCODE);
-	var isUpArrow = isKey(CONST.UP_ARROW_KEYCODE);
-	var isDownArrow = isKey(CONST.DOWN_ARROW_KEYCODE);
-
-	var ENCODED_REGEX = /&[^\s]*;/;
-	/*
-	 * to prevent double encoding decodes content in loop until content is encoding free
-	 */
-	var cleanInput = function cleanInput (questionableMarkup) {
-		// check for encoding and decode
-		while (ENCODED_REGEX.test(questionableMarkup)) {
-			questionableMarkup = $('<i>').html(questionableMarkup).text();
-		}
-
-		// string completely decoded now encode it
-		return $('<i>').text(questionableMarkup).html();
-	};
-
-
-
-
-	langx.mixin(bs3, {
-		CONST: CONST,
-		cleanInput: cleanInput,
-		isBackspaceKey: isBackspaceKey,
-		isDeleteKey: isDeleteKey,
-		isShiftHeld: isShiftHeld,
-		isTabKey: isTabKey,
-		isUpArrow: isUpArrow,
-		isDownArrow: isDownArrow
-	});
-
-/*---------------------------------------------------------------------------------*/
-
-	var WidgetBase = langx.Evented.inherit({
-        klassName: "WidgetBase",
-    });
-
-
-	langx.mixin(bs3, {
-		WidgetBase : WidgetBase
-	});
-
-	return bs3;
-});
-
-define('skylark-bootstrap3/affix',[
-  "skylark-langx/langx",
-  "skylark-utils-dom/browser",
-  "skylark-utils-dom/eventer",
-  "skylark-utils-dom/noder",
-  "skylark-utils-dom/geom",
-  "skylark-utils-dom/query",
-  "./bs3"
-],function(langx,browser,eventer,noder,geom,$,bs3){
-
-
-/* ========================================================================
- * Bootstrap: affix.js v3.3.7
- * http://getbootstrap.com/javascript/#affix
- * ========================================================================
- * Copyright 2011-2016 Twitter, Inc.
- * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
- * ======================================================================== */
-
-  'use strict';
-
-  // AFFIX CLASS DEFINITION
-  // ======================
-
-  var Affix = bs3.Affix = bs3.WidgetBase.inherit({
-        klassName: "Affix",
-
-        init : function(element,options) {
-          this.options = langx.mixin({}, Affix.DEFAULTS, options)
-
-          this.$target = $(this.options.target)
-            .on('scroll.bs.affix.data-api', langx.proxy(this.checkPosition, this))
-            .on('click.bs.affix.data-api',  langx.proxy(this.checkPositionWithEventLoop, this))
-
-          this.$element     = $(element)
-          this.affixed      = null;
-          this.unpin        = null;
-          this.pinnedOffset = null;
-
-          this.checkPosition();
-        },
-
-        getState : function (scrollHeight, height, offsetTop, offsetBottom) {
-          var scrollTop    = this.$target.scrollTop()
-          var position     = this.$element.offset()
-          var targetHeight = this.$target.height()
-
-          if (offsetTop != null && this.affixed == 'top') return scrollTop < offsetTop ? 'top' : false
-
-          if (this.affixed == 'bottom') {
-            if (offsetTop != null) return (scrollTop + this.unpin <= position.top) ? false : 'bottom'
-            return (scrollTop + targetHeight <= scrollHeight - offsetBottom) ? false : 'bottom'
-          }
-
-          var initializing   = this.affixed == null
-          var colliderTop    = initializing ? scrollTop : position.top
-          var colliderHeight = initializing ? targetHeight : height
-
-          if (offsetTop != null && scrollTop <= offsetTop) return 'top'
-          if (offsetBottom != null && (colliderTop + colliderHeight >= scrollHeight - offsetBottom)) return 'bottom'
-
-          return false
-        },
-
-        getPinnedOffset : function () {
-          if (this.pinnedOffset) return this.pinnedOffset
-          this.$element.removeClass(Affix.RESET).addClass('affix')
-          var scrollTop = this.$target.scrollTop()
-          var position  = this.$element.offset()
-          return (this.pinnedOffset = position.top - scrollTop)
-        },
-
-        checkPositionWithEventLoop : function () {
-          setTimeout(langx.proxy(this.checkPosition, this), 1)
-        },
-
-        checkPosition : function () {
-          if (!this.$element.is(':visible')) return
-
-          var height       = this.$element.height()
-          var offset       = this.options.offset
-          var offsetTop    = offset.top
-          var offsetBottom = offset.bottom
-          var scrollHeight = Math.max($(document).height(), $(document.body).height())
-
-          if (typeof offset != 'object')         offsetBottom = offsetTop = offset
-          if (typeof offsetTop == 'function')    offsetTop    = offset.top(this.$element)
-          if (typeof offsetBottom == 'function') offsetBottom = offset.bottom(this.$element)
-
-          var affix = this.getState(scrollHeight, height, offsetTop, offsetBottom)
-
-          if (this.affixed != affix) {
-            if (this.unpin != null) this.$element.css('top', '')
-
-            var affixType = 'affix' + (affix ? '-' + affix : '')
-            var e         = eventer.create(affixType + '.bs.affix')
-
-            this.$element.trigger(e)
-
-            if (e.isDefaultPrevented()) return
-
-            this.affixed = affix
-            this.unpin = affix == 'bottom' ? this.getPinnedOffset() : null
-
-            this.$element
-              .removeClass(Affix.RESET)
-              .addClass(affixType)
-              .trigger(affixType.replace('affix', 'affixed') + '.bs.affix')
-          }
-
-          if (affix == 'bottom') {
-            this.$element.offset({
-              top: scrollHeight - height - offsetBottom
-            })
-          }
-        }
-  });
-
-
-  Affix.VERSION  = '3.3.7'
-
-  Affix.RESET    = 'affix affix-top affix-bottom'
-
-  Affix.DEFAULTS = {
-    offset: 0,
-    target: window
-  }
-
-
-
-  // AFFIX PLUGIN DEFINITION
-  // =======================
-
-  function Plugin(option) {
-    return this.each(function () {
-      var $this   = $(this)
-      var data    = $this.data('bs.affix')
-      var options = typeof option == 'object' && option
-
-      if (!data) $this.data('bs.affix', (data = new Affix(this, options)))
-      if (typeof option == 'string') data[option]()
-    })
-  }
-
-  var old = $.fn.affix
-
-  $.fn.affix             = Plugin;
-  $.fn.affix.Constructor = Affix;
-
-
-  // AFFIX NO CONFLICT
-  // =================
-
-  $.fn.affix.noConflict = function () {
-    $.fn.affix = old
-    return this
-  }
-
-
-  return $.fn.affix;
-});
-
-define('skylark-bootstrap3/alert',[
-  "skylark-langx/langx",
-  "skylark-utils-dom/browser",
-  "skylark-utils-dom/eventer",
-  "skylark-utils-dom/noder",
-  "skylark-utils-dom/geom",
-  "skylark-utils-dom/query",
-  "./bs3"
-],function(langx,browser,eventer,noder,geom,$,bs3){
-
-/* ========================================================================
- * Bootstrap: alert.js v3.3.7
- * http://getbootstrap.com/javascript/#alerts
- * ========================================================================
- * Copyright 2011-2016 Twitter, Inc.
- * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
- * ======================================================================== */
-
-  'use strict';
-
-  // ALERT CLASS DEFINITION
-  // ======================
-
-  var dismiss = '[data-dismiss="alert"]';
-
-  var Alert = bs3.Alert = bs3.WidgetBase.inherit({
-    klassName: "Alert",
-
-    init : function(el,options) {
-      $(el).on('click', dismiss, this.close)
-    },
-
-    close : function (e) {
-      var $this    = $(this);
-      var selector = $this.attr('data-target');
-
-      if (!selector) {
-        selector = $this.attr('href')
-        selector = selector && selector.replace(/.*(?=#[^\s]*$)/, ''); // strip for ie7
-      }
-
-      var $parent = $(selector === '#' ? [] : selector);
-
-      if (e) e.preventDefault()
-
-      if (!$parent.length) {
-        $parent = $this.closest('.alert');
-      }
-
-      $parent.trigger(e = eventer.create('close.bs.alert'));
-
-      if (e.isDefaultPrevented()) {
-        return
-      }
-        
-      $parent.removeClass('in');
-
-      function removeElement() {
-        // detach from parent, fire event then clean up data
-        $parent.detach().trigger('closed.bs.alert').remove()
-      }
-
-      if (browser.support.transition) {
-        if ($parent.hasClass('fade') ) {
-          $parent.one('transitionEnd', removeElement)
-          .emulateTransitionEnd(Alert.TRANSITION_DURATION);
-        } else {
-          removeElement();
-        }
-
-      } 
-    }
-  });
-
-
-  Alert.VERSION = '3.3.7';
-
-  Alert.TRANSITION_DURATION = 150;
-
-
-
-  // ALERT PLUGIN DEFINITION
-  // =======================
-
-  function Plugin(option) {
-    return this.each(function () {
-      var $this = $(this)
-      var wgt  = $this.data('bs.alert')
-
-      if (!wgt) {
-        $this.data('bs.alert', (wgt = new Alert(this)));
-      }
-      if (typeof option == 'string') {
-        wgt[option].call($this);
-      }
-    })
-  }
-
-  var old = $.fn.alert;
-
-  $.fn.alert             = Plugin;
-  $.fn.alert.Constructor = Alert;
-
-
-  // ALERT NO CONFLICT
-  // =================
-
-  $.fn.alert.noConflict = function () {
-    $.fn.alert = old;
-    return this;
-  }
-
-  return $.fn.alert;
-});
-
-define('skylark-bootstrap3/button',[
-  "skylark-langx/langx",
-  "skylark-utils-dom/browser",
-  "skylark-utils-dom/eventer",
-  "skylark-utils-dom/noder",
-  "skylark-utils-dom/geom",
-  "skylark-utils-dom/query",
-  "./bs3"
-],function(langx,browser,eventer,noder,geom,$,bs3){
-
-/* ========================================================================
- * Bootstrap: button.js v3.3.7
- * http://getbootstrap.com/javascript/#buttons
- * ========================================================================
- * Copyright 2011-2016 Twitter, Inc.
- * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
- * ======================================================================== */
-
-  'use strict';
-
-  // BUTTON PUBLIC CLASS DEFINITION
-  // ==============================
-
-  var Button = bs3.Button = bs3.WidgetBase.inherit({
-    klassName: "Button",
-
-    init : function(element,options) {
-      var $el = this.$element  = $(element)
-      this.options   = langx.mixin({}, Button.DEFAULTS, options)
-      this.isLoading = false
-
-      if ($el.closest('[data-toggle^="button"]')) {
-        $el.on("click.bs.button.data-api",langx.proxy(function(e){
-          this.toggle()
-
-          if (!($(e.target).is('input[type="radio"], input[type="checkbox"]'))) {
-            // Prevent double click on radios, and the double selections (so cancellation) on checkboxes
-            e.preventDefault()
-            // The target component still receive the focus
-            var $btn = this.$element; 
-            if ($btn.is('input,button')) {
-              $btn.trigger('focus');
-            } else {
-              $btn.find('input:visible,button:visible').first().trigger('focus');
-            }
-          }
-        },this));
-      }
-    },
-
-    setState : function (state) {
-      var d    = 'disabled'
-      var $el  = this.$element
-      var val  = $el.is('input') ? 'val' : 'html'
-      var data = $el.data()
-
-      state += 'Text'
-
-      if (data.resetText == null) $el.data('resetText', $el[val]())
-
-      // push to event loop to allow forms to submit
-      setTimeout(langx.proxy(function () {
-        $el[val](data[state] == null ? this.options[state] : data[state])
-
-        if (state == 'loadingText') {
-          this.isLoading = true
-          $el.addClass(d).attr(d, d).prop(d, true)
-        } else if (this.isLoading) {
-          this.isLoading = false
-          $el.removeClass(d).removeAttr(d).prop(d, false)
-        }
-      }, this), 0)
-    },
-
-    toggle : function () {
-      var changed = true
-      var $parent = this.$element.closest('[data-toggle="buttons"]')
-
-      if ($parent.length) {
-        var $input = this.$element.find('input')
-        if ($input.prop('type') == 'radio') {
-          if ($input.prop('checked')) changed = false
-          $parent.find('.active').removeClass('active')
-          this.$element.addClass('active')
-        } else if ($input.prop('type') == 'checkbox') {
-          if (($input.prop('checked')) !== this.$element.hasClass('active')) changed = false
-          this.$element.toggleClass('active')
-        }
-        $input.prop('checked', this.$element.hasClass('active'))
-        if (changed) $input.trigger('change')
-      } else {
-        this.$element.attr('aria-pressed', !this.$element.hasClass('active'))
-        this.$element.toggleClass('active')
-      }
-    }
-
-  });  
-
-  Button.VERSION  = '3.3.7'
-
-  Button.DEFAULTS = {
-    loadingText: 'loading...'
-  }
-
-
-
-  // BUTTON PLUGIN DEFINITION
-  // ========================
-
-  function Plugin(option) {
-    return this.each(function () {
-      var $this   = $(this)
-      var wgt    = $this.data('bs.button')
-      var options = typeof option == 'object' && option
-
-      if (!wgt) {
-        $this.data('bs.button', (wgt = new Button(this, options)));
-      }
-
-      if (option == 'toggle') {
-        wgt.toggle();
-      } else if (option) {
-        wgt.setState(option);
-      }
-    });
-  }
-
-  var old = $.fn.button;
-
-  $.fn.button             = Plugin;
-  $.fn.button.Constructor = Button;
-
-
-  // BUTTON NO CONFLICT
-  // ==================
-
-  $.fn.button.noConflict = function () {
-    $.fn.button = old;
-    return this;
-  }
-
-
-  return $.fn.button;
-});
-
 define('skylark-utils-dom/elmx',[
     "./dom",
     "./langx",
@@ -9130,8 +8623,9 @@ define('skylark-utils-dom/elmx',[
     "./fx",
     "./geom",
     "./noder",
-    "./styler"
-], function(dom, langx, datax, eventer, finder, fx, geom, noder, styler) {
+    "./styler",
+    "./query"
+], function(dom, langx, datax, eventer, finder, fx, geom, noder, styler,$) {
     var map = Array.prototype.map,
         slice = Array.prototype.slice;
     /*
@@ -9148,6 +8642,11 @@ define('skylark-utils-dom/elmx',[
             this.domNode = node;
         }
     });
+
+    VisualElement.prototype.$ = VisualElement.prototype.query = function(selector) {
+        return $(selector,this.domNode);
+    };
+
     /*
      * the VisualElement object wrapping document.body
      */
@@ -9179,7 +8678,7 @@ define('skylark-utils-dom/elmx',[
                     } else if (langx.isArrayLike(ret)) {
                         ret = map.call(ret, function(el) {
                             if (el instanceof HTMLElement) {
-                                return new VisualElement(ret);
+                                return new VisualElement(el);
                             } else {
                                 return el;
                             }
@@ -9468,8 +8967,10 @@ define('skylark-utils-dom/plugins',[
                 pluginInstance.option( options || {} );
             } else {
                 var pluginKlass = pluginKlasses[pluginName]; 
-                datax.data( elm, pluginName, new pluginKlass(elm,options));
+                pluginInstance = new pluginKlass(elm,options);
+                datax.data( elm, pluginName,pluginInstance );
             }
+            return pluginInstance;
         }
 
         return returnValue;
@@ -9503,9 +9004,17 @@ define('skylark-utils-dom/plugins',[
               if (ctor.prototype.hasOwnProperty("options")) {
                 langx.mixin(defaults,ctor.prototype.options);
               }
+              if (ctor.hasOwnProperty("options")) {
+                langx.mixin(defaults,ctor.options);
+              }
             }
           }
-          return this.options = langx.mixin({},defaults,options);
+          Object.defineProperty(this,"options",{
+            value :langx.mixin({},defaults,options)
+          });
+
+          //return this.options = langx.mixin({},defaults,options);
+          return this.options;
         },
 
 
@@ -9603,7 +9112,7 @@ define('skylark-utils-dom/plugins',[
 
     elmx.partial("plugin",function(name,options) {
         var args = slice.call( arguments, 1 );
-        return instantiate.apply(this,[this,name].concat(args));
+        return instantiate.apply(this,[this.domNode,name].concat(args));
     }); 
 
 
@@ -9622,6 +9131,604 @@ define('skylark-utils-dom/plugins',[
 
     return plugins;
 });
+define('skylark-bootstrap3/bs3',[
+  "skylark-utils-dom/skylark",
+  "skylark-langx/langx",
+  "skylark-utils-dom/browser",
+  "skylark-utils-dom/eventer",
+  "skylark-utils-dom/noder",
+  "skylark-utils-dom/geom",
+  "skylark-utils-dom/query"
+],function(skylark,langx,browser,eventer,noder,geom,$){
+	var ui = skylark.ui = skylark.ui || {}, 
+		bs3 = ui.bs3 = {};
+
+/*---------------------------------------------------------------------------------*/
+	/*
+	 * Fuel UX utilities.js
+	 * https://github.com/ExactTarget/fuelux
+	 *
+	 * Copyright (c) 2014 ExactTarget
+	 * Licensed under the BSD New license.
+	 */
+	var CONST = {
+		BACKSPACE_KEYCODE: 8,
+		COMMA_KEYCODE: 188, // `,` & `<`
+		DELETE_KEYCODE: 46,
+		DOWN_ARROW_KEYCODE: 40,
+		ENTER_KEYCODE: 13,
+		TAB_KEYCODE: 9,
+		UP_ARROW_KEYCODE: 38
+	};
+
+	var isShiftHeld = function isShiftHeld (e) { return e.shiftKey === true; };
+
+	var isKey = function isKey (keyCode) {
+		return function compareKeycodes (e) {
+			return e.keyCode === keyCode;
+		};
+	};
+
+	var isBackspaceKey = isKey(CONST.BACKSPACE_KEYCODE);
+	var isDeleteKey = isKey(CONST.DELETE_KEYCODE);
+	var isTabKey = isKey(CONST.TAB_KEYCODE);
+	var isUpArrow = isKey(CONST.UP_ARROW_KEYCODE);
+	var isDownArrow = isKey(CONST.DOWN_ARROW_KEYCODE);
+
+	var ENCODED_REGEX = /&[^\s]*;/;
+	/*
+	 * to prevent double encoding decodes content in loop until content is encoding free
+	 */
+	var cleanInput = function cleanInput (questionableMarkup) {
+		// check for encoding and decode
+		while (ENCODED_REGEX.test(questionableMarkup)) {
+			questionableMarkup = $('<i>').html(questionableMarkup).text();
+		}
+
+		// string completely decoded now encode it
+		return $('<i>').text(questionableMarkup).html();
+	};
+
+
+
+
+	langx.mixin(bs3, {
+		CONST: CONST,
+		cleanInput: cleanInput,
+		isBackspaceKey: isBackspaceKey,
+		isDeleteKey: isDeleteKey,
+		isShiftHeld: isShiftHeld,
+		isTabKey: isTabKey,
+		isUpArrow: isUpArrow,
+		isDownArrow: isDownArrow
+	});
+
+/*---------------------------------------------------------------------------------*/
+
+	var WidgetBase = langx.Evented.inherit({
+        klassName: "WidgetBase",
+    });
+
+
+	langx.mixin(bs3, {
+		WidgetBase : WidgetBase
+	});
+
+	return bs3;
+});
+
+define('skylark-bootstrap3/affix',[
+  "skylark-langx/langx",
+  "skylark-utils-dom/browser",
+  "skylark-utils-dom/eventer",
+  "skylark-utils-dom/noder",
+  "skylark-utils-dom/geom",
+  "skylark-utils-dom/query",
+  "skylark-utils-dom/plugins",
+  "./bs3"
+],function(langx,browser,eventer,noder,geom,$,plugins,bs3){
+
+
+/* ========================================================================
+ * Bootstrap: affix.js v3.3.7
+ * http://getbootstrap.com/javascript/#affix
+ * ========================================================================
+ * Copyright 2011-2016 Twitter, Inc.
+ * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
+ * ======================================================================== */
+
+  'use strict';
+
+  // AFFIX CLASS DEFINITION
+  // ======================
+
+  var Affix = bs3.Affix = plugins.Plugin.inherit({
+        klassName: "Affix",
+
+        pluginName : "bs3.affix",
+
+        _construct : function(element,options) {
+          this.options = langx.mixin({}, Affix.DEFAULTS, options)
+
+          this.$target = $(this.options.target)
+            .on('scroll.bs.affix.data-api', langx.proxy(this.checkPosition, this))
+            .on('click.bs.affix.data-api',  langx.proxy(this.checkPositionWithEventLoop, this))
+
+          this.$element     = $(element)
+          this.affixed      = null;
+          this.unpin        = null;
+          this.pinnedOffset = null;
+
+          this.checkPosition();
+        },
+
+        getState : function (scrollHeight, height, offsetTop, offsetBottom) {
+          var scrollTop    = this.$target.scrollTop()
+          var position     = this.$element.offset()
+          var targetHeight = this.$target.height()
+
+          if (offsetTop != null && this.affixed == 'top') return scrollTop < offsetTop ? 'top' : false
+
+          if (this.affixed == 'bottom') {
+            if (offsetTop != null) return (scrollTop + this.unpin <= position.top) ? false : 'bottom'
+            return (scrollTop + targetHeight <= scrollHeight - offsetBottom) ? false : 'bottom'
+          }
+
+          var initializing   = this.affixed == null
+          var colliderTop    = initializing ? scrollTop : position.top
+          var colliderHeight = initializing ? targetHeight : height
+
+          if (offsetTop != null && scrollTop <= offsetTop) return 'top'
+          if (offsetBottom != null && (colliderTop + colliderHeight >= scrollHeight - offsetBottom)) return 'bottom'
+
+          return false
+        },
+
+        getPinnedOffset : function () {
+          if (this.pinnedOffset) return this.pinnedOffset
+          this.$element.removeClass(Affix.RESET).addClass('affix')
+          var scrollTop = this.$target.scrollTop()
+          var position  = this.$element.offset()
+          return (this.pinnedOffset = position.top - scrollTop)
+        },
+
+        checkPositionWithEventLoop : function () {
+          setTimeout(langx.proxy(this.checkPosition, this), 1)
+        },
+
+        checkPosition : function () {
+          if (!this.$element.is(':visible')) return
+
+          var height       = this.$element.height()
+          var offset       = this.options.offset
+          var offsetTop    = offset.top
+          var offsetBottom = offset.bottom
+          var scrollHeight = Math.max($(document).height(), $(document.body).height())
+
+          if (typeof offset != 'object')         offsetBottom = offsetTop = offset
+          if (typeof offsetTop == 'function')    offsetTop    = offset.top(this.$element)
+          if (typeof offsetBottom == 'function') offsetBottom = offset.bottom(this.$element)
+
+          var affix = this.getState(scrollHeight, height, offsetTop, offsetBottom)
+
+          if (this.affixed != affix) {
+            if (this.unpin != null) this.$element.css('top', '')
+
+            var affixType = 'affix' + (affix ? '-' + affix : '')
+            var e         = eventer.create(affixType + '.bs.affix')
+
+            this.$element.trigger(e)
+
+            if (e.isDefaultPrevented()) return
+
+            this.affixed = affix
+            this.unpin = affix == 'bottom' ? this.getPinnedOffset() : null
+
+            this.$element
+              .removeClass(Affix.RESET)
+              .addClass(affixType)
+              .trigger(affixType.replace('affix', 'affixed') + '.bs.affix')
+          }
+
+          if (affix == 'bottom') {
+            this.$element.offset({
+              top: scrollHeight - height - offsetBottom
+            })
+          }
+        }
+  });
+
+
+  Affix.VERSION  = '3.3.7'
+
+  Affix.RESET    = 'affix affix-top affix-bottom'
+
+  Affix.DEFAULTS = {
+    offset: 0,
+    target: window
+  }
+
+
+  /*
+  // AFFIX PLUGIN DEFINITION
+  // =======================
+
+  function Plugin(option) {
+    return this.each(function () {
+      var $this   = $(this)
+      var data    = $this.data('bs.affix')
+      var options = typeof option == 'object' && option
+
+      if (!data) $this.data('bs.affix', (data = new Affix(this, options)))
+      if (typeof option == 'string') data[option]()
+    })
+  }
+
+  var old = $.fn.affix
+
+  $.fn.affix             = Plugin;
+  $.fn.affix.Constructor = Affix;
+
+
+  // AFFIX NO CONFLICT
+  // =================
+
+  $.fn.affix.noConflict = function () {
+    $.fn.affix = old
+    return this
+  }
+
+
+  return $.fn.affix;
+  */
+
+  plugins.register(Affix);
+
+  $.fn.affix = function(option) {
+    return this.each(function () {
+      var options = typeof option == 'object' && option
+      var  plugin = plugins.instantiate(this, "bs3.affix",options);
+      if (typeof option == 'string') {
+        plugin[option]()
+      }
+    });
+  };
+
+  return Affix;
+});
+
+define('skylark-bootstrap3/alert',[
+  "skylark-langx/langx",
+  "skylark-utils-dom/browser",
+  "skylark-utils-dom/eventer",
+  "skylark-utils-dom/noder",
+  "skylark-utils-dom/geom",
+  "skylark-utils-dom/query",
+  "skylark-utils-dom/plugins",
+  "./bs3"
+],function(langx,browser,eventer,noder,geom,$,plugins,bs3){
+
+/* ========================================================================
+ * Bootstrap: alert.js v3.3.7
+ * http://getbootstrap.com/javascript/#alerts
+ * ========================================================================
+ * Copyright 2011-2016 Twitter, Inc.
+ * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
+ * ======================================================================== */
+
+  'use strict';
+
+  // ALERT CLASS DEFINITION
+  // ======================
+
+  var dismiss = '[data-dismiss="alert"]';
+
+  var Alert = bs3.Alert = plugins.Plugin.inherit({
+    klassName: "Alert",
+
+    pluginName : "bs3.alert",
+
+    _construct : function(el,options) {
+      $(el).on('click', dismiss, this.close)
+    },
+
+    close : function (e) {
+      var $this    = $(this);
+      var selector = $this.attr('data-target');
+
+      if (!selector) {
+        selector = $this.attr('href')
+        selector = selector && selector.replace(/.*(?=#[^\s]*$)/, ''); // strip for ie7
+      }
+
+      var $parent = $(selector === '#' ? [] : selector);
+
+      if (e) e.preventDefault()
+
+      if (!$parent.length) {
+        $parent = $this.closest('.alert');
+      }
+
+      $parent.trigger(e = eventer.create('close.bs.alert'));
+
+      if (e.isDefaultPrevented()) {
+        return
+      }
+        
+      $parent.removeClass('in');
+
+      function removeElement() {
+        // detach from parent, fire event then clean up data
+        $parent.detach().trigger('closed.bs.alert').remove()
+      }
+
+      if (browser.support.transition) {
+        if ($parent.hasClass('fade') ) {
+          $parent.one('transitionEnd', removeElement)
+          .emulateTransitionEnd(Alert.TRANSITION_DURATION);
+        } else {
+          removeElement();
+        }
+
+      } 
+    }
+  });
+
+
+  Alert.VERSION = '3.3.7';
+
+  Alert.TRANSITION_DURATION = 150;
+
+
+  /*
+  // ALERT PLUGIN DEFINITION
+  // =======================
+
+  function Plugin(option) {
+    return this.each(function () {
+      var $this = $(this)
+      var wgt  = $this.data('bs.alert')
+
+      if (!wgt) {
+        $this.data('bs.alert', (wgt = new Alert(this)));
+      }
+      if (typeof option == 'string') {
+        wgt[option].call($this);
+      }
+    })
+  }
+
+  var old = $.fn.alert;
+
+  $.fn.alert             = Plugin;
+  $.fn.alert.Constructor = Alert;
+
+
+  // ALERT NO CONFLICT
+  // =================
+
+  $.fn.alert.noConflict = function () {
+    $.fn.alert = old;
+    return this;
+  }
+
+  return $.fn.alert;
+  */
+
+  plugins.register(Alert);
+
+  $.fn.alert = function(options) {
+    return this.each(function () {
+      var options = typeof option == 'object' && option
+      var  plugin = plugins.instantiate(this, "bs3.alert",options);
+      if (typeof option == 'string') {
+        plugin[option]()
+      }
+    });
+  };
+
+  return Alert;
+
+});
+
+define('skylark-bootstrap3/button',[
+  "skylark-langx/langx",
+  "skylark-utils-dom/browser",
+  "skylark-utils-dom/eventer",
+  "skylark-utils-dom/noder",
+  "skylark-utils-dom/geom",
+  "skylark-utils-dom/query",
+  "skylark-utils-dom/plugins",
+  "./bs3"
+],function(langx,browser,eventer,noder,geom,$,plugins,bs3){
+
+/* ========================================================================
+ * Bootstrap: button.js v3.3.7
+ * http://getbootstrap.com/javascript/#buttons
+ * ========================================================================
+ * Copyright 2011-2016 Twitter, Inc.
+ * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
+ * ======================================================================== */
+
+  'use strict';
+
+  // BUTTON PUBLIC CLASS DEFINITION
+  // ==============================
+
+  var Button = bs3.Button = plugins.Plugin.inherit({
+    klassName: "Button",
+
+    pluginName : "bs3.button",
+
+    _construct : function(element,options) {
+      var $el = this.$element  = $(element)
+      this.options   = langx.mixin({}, Button.DEFAULTS, options)
+      this.isLoading = false
+
+      if ($el.closest('[data-toggle^="button"]')) {
+        $el.on("click.bs.button.data-api",langx.proxy(function(e){
+          this.toggle()
+
+          if (!($(e.target).is('input[type="radio"], input[type="checkbox"]'))) {
+            // Prevent double click on radios, and the double selections (so cancellation) on checkboxes
+            e.preventDefault()
+            // The target component still receive the focus
+            var $btn = this.$element; 
+            if ($btn.is('input,button')) {
+              $btn.trigger('focus');
+            } else {
+              $btn.find('input:visible,button:visible').first().trigger('focus');
+            }
+          }
+        },this));
+      }
+    },
+
+    setState : function (state) {
+      var d    = 'disabled'
+      var $el  = this.$element
+      var val  = $el.is('input') ? 'val' : 'html'
+      var data = $el.data()
+
+      state += 'Text'
+
+      if (data.resetText == null) $el.data('resetText', $el[val]())
+
+      // push to event loop to allow forms to submit
+      setTimeout(langx.proxy(function () {
+        $el[val](data[state] == null ? this.options[state] : data[state])
+
+        if (state == 'loadingText') {
+          this.isLoading = true
+          $el.addClass(d).attr(d, d).prop(d, true)
+        } else if (this.isLoading) {
+          this.isLoading = false
+          $el.removeClass(d).removeAttr(d).prop(d, false)
+        }
+      }, this), 0)
+    },
+
+    toggle : function () {
+      var changed = true
+      var $parent = this.$element.closest('[data-toggle="buttons"]')
+
+      if ($parent.length) {
+        var $input = this.$element.find('input')
+        if ($input.prop('type') == 'radio') {
+          if ($input.prop('checked')) changed = false
+          $parent.find('.active').removeClass('active')
+          this.$element.addClass('active')
+        } else if ($input.prop('type') == 'checkbox') {
+          if (($input.prop('checked')) !== this.$element.hasClass('active')) changed = false
+          this.$element.toggleClass('active')
+        }
+        $input.prop('checked', this.$element.hasClass('active'))
+        if (changed) $input.trigger('change')
+      } else {
+        this.$element.attr('aria-pressed', !this.$element.hasClass('active'))
+        this.$element.toggleClass('active')
+      }
+    }
+
+  });  
+
+  Button.VERSION  = '3.3.7'
+
+  Button.DEFAULTS = {
+    loadingText: 'loading...'
+  }
+
+
+
+  // BUTTON PLUGIN DEFINITION
+  // ========================
+  /*
+
+  function Plugin(option) {
+    return this.each(function () {
+      var $this   = $(this)
+      var wgt    = $this.data('bs.button')
+      var options = typeof option == 'object' && option
+
+      if (!wgt) {
+        $this.data('bs.button', (wgt = new Button(this, options)));
+      }
+
+      if (option == 'toggle') {
+        wgt.toggle();
+      } else if (option) {
+        wgt.setState(option);
+      }
+    });
+  }
+
+  var old = $.fn.button;
+
+  $.fn.button             = Plugin;
+  $.fn.button.Constructor = Button;
+
+
+  // BUTTON NO CONFLICT
+  // ==================
+
+  $.fn.button.noConflict = function () {
+    $.fn.button = old;
+    return this;
+  }
+
+
+  return $.fn.button;
+  */
+
+  plugins.register(Button);
+
+  $.fn.button = function(options) {
+    return this.each(function () {
+      var  plugin = plugins.instantiate(this, "bs3.button");
+      if (options == 'toggle') {
+        plugin.toggle();
+      } else if (options) {
+        plugin.setState(options);
+      }
+    });
+  };
+
+  return Button;
+});
+
+define('skylark-bootstrap3/transition',[
+  "skylark-langx/langx",
+  "skylark-utils-dom/browser",
+  "skylark-utils-dom/eventer",
+  "skylark-utils-dom/noder",
+  "skylark-utils-dom/geom",
+  "skylark-utils-dom/query",
+  "./bs3"
+],function(langx,browser,eventer,noder,geom,$,bs3){
+
+/* ========================================================================
+ * Bootstrap: transition.js v3.3.7
+ * http://getbootstrap.com/javascript/#transitions
+ * ========================================================================
+ * Copyright 2011-2016 Twitter, Inc.
+ * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
+ * ======================================================================== */
+
+  'use strict';
+
+  // http://blog.alexmaccaw.com/css-transitions
+  $.fn.emulateTransitionEnd = function (duration) {
+    var called = false
+    var $el = this
+    $(this).one('transitionEnd', function () { called = true })
+    var callback = function () { if (!called) $($el).trigger(browser.support.transition.end) }
+    setTimeout(callback, duration)
+    return this
+  } 
+
+  eventer.special.bsTransitionEnd = eventer.special.transitionEnd;
+});
+
 define('skylark-bootstrap3/carousel',[
     "skylark-langx/langx",
     "skylark-utils-dom/browser",
@@ -9630,7 +9737,8 @@ define('skylark-bootstrap3/carousel',[
     "skylark-utils-dom/geom",
     "skylark-utils-dom/query",
     "skylark-utils-dom/plugins",
-    "./bs3"
+    "./bs3",
+    "./transition"
 ], function(langx, browser, eventer, noder, geom, $, plugins, bs3) {
 
     /* ========================================================================
@@ -9671,12 +9779,29 @@ define('skylark-bootstrap3/carousel',[
             this.$active = null
             this.$items = null
 
-            this.options.keyboard && this.$element.on('keydown.bs.carousel', langx.proxy(this.keydown, this))
+            var self = this;
+            if (!this.options.embeded) {
+                this.options.keyboard && this.$element.on('keydown.bs.carousel', langx.proxy(this.keydown, this))
 
-            this.options.pause == 'hover' && !('ontouchstart' in document.documentElement) && this.$element
-                .on('mouseenter.bs.carousel', langx.proxy(this.pause, this))
-                .on('mouseleave.bs.carousel', langx.proxy(this.cycle, this));
+                this.options.pause == 'hover' && !('ontouchstart' in document.documentElement) && this.$element
+                    .on('mouseenter.bs3.carousel', langx.proxy(this.pause, this))
+                    .on('mouseleave.bs3.carousel', langx.proxy(this.cycle, this));
 
+                this.$element.on("click.bs3.carousel.data-api", "[data-slide],[data-slide-to]", function(e) {
+                    var $this = $(this),
+                        slide = $this.attr('data-slide'),
+                        slideIndex = $this.attr('data-slide-to');
+
+                    if (slide == "prev") {
+                        self.prev();
+                    } else if (slide == "next") {
+                        self.next();
+                    } else  if (slideIndex) {
+                        self.to(slideIndex);
+                    }
+                    e.preventDefault();
+                });
+            }
         }
     });
 
@@ -9851,44 +9976,31 @@ define('skylark-bootstrap3/carousel',[
         })
     }
     */
-    plugins.register(Carousel,"carousel");
+    plugins.register(Carousel);
+
+    $.fn.carousel = function(option) {
+        return this.each(function () {
+            var $this = $(this)
+            var plugin = plugins.instantiate(this,'bs3.carousel',"instance");
+            var options = langx.mixin({}, Carousel.DEFAULTS, $this.data(), typeof option == 'object' && option)
+            var action = typeof option == 'string' ? option : options.slide
+
+            if (!plugin) {
+                plugin = plugins.instantiate(this,'bs3.carousel',options);
+            }
+            if (typeof option == 'number') {
+                plugin.to(option);
+            } else if (action) {
+                plugin[action]()
+            } else if (options.interval) {
+                plugin.pause().cycle();
+            }
+        });
+    };
 
     return Carousel;
 
 });
-define('skylark-bootstrap3/transition',[
-  "skylark-langx/langx",
-  "skylark-utils-dom/browser",
-  "skylark-utils-dom/eventer",
-  "skylark-utils-dom/noder",
-  "skylark-utils-dom/geom",
-  "skylark-utils-dom/query",
-  "./bs3"
-],function(langx,browser,eventer,noder,geom,$,bs3){
-
-/* ========================================================================
- * Bootstrap: transition.js v3.3.7
- * http://getbootstrap.com/javascript/#transitions
- * ========================================================================
- * Copyright 2011-2016 Twitter, Inc.
- * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
- * ======================================================================== */
-
-  'use strict';
-
-  // http://blog.alexmaccaw.com/css-transitions
-  $.fn.emulateTransitionEnd = function (duration) {
-    var called = false
-    var $el = this
-    $(this).one('transitionEnd', function () { called = true })
-    var callback = function () { if (!called) $($el).trigger(browser.support.transition.end) }
-    setTimeout(callback, duration)
-    return this
-  } 
-
-  eventer.special.bsTransitionEnd = eventer.special.transitionEnd;
-});
-
 define('skylark-bootstrap3/collapse',[
     "skylark-langx/langx",
     "skylark-utils-dom/browser",
@@ -10114,7 +10226,21 @@ define('skylark-bootstrap3/collapse',[
   }
   */
 
-  plugins.register(Collapse,"collapse");
+  plugins.register(Collapse);
+
+  $.fn.collapse = function(option) {
+    return this.each(function () {
+      var $this   = $(this)
+      var plugin    = plugins.instantiate(this,'bs3.collapse',"instance");
+      var options = langx.mixin({}, Collapse.DEFAULTS, $this.data(), typeof option == 'object' && option)
+
+      if (!plugin && options.toggle && /show|hide/.test(option)) options.toggle = false
+      if (!plugin) {
+          plugin = plugins.instantiate(this,'bs3.collapse',options);
+      }
+      if (typeof option == 'string') plugin[option]()
+    });
+  };
 
   return Collapse;
 
@@ -10127,8 +10253,9 @@ define('skylark-bootstrap3/dropdown',[
   "skylark-utils-dom/noder",
   "skylark-utils-dom/geom",
   "skylark-utils-dom/query",
+  "skylark-utils-dom/plugins",
   "./bs3"
-],function(langx,browser,eventer,noder,geom,$,bs3){
+],function(langx,browser,eventer,noder,geom,$,plugins,bs3){
 
 /* ========================================================================
  * Bootstrap: dropdown.js v3.3.7
@@ -10145,10 +10272,12 @@ define('skylark-bootstrap3/dropdown',[
   var backdrop = '.dropdown-backdrop';
   var toggle   = '[data-toggle="dropdown"]';
 
-  var Dropdown = bs3.Dropdown = bs3.WidgetBase.inherit({
+  var Dropdown = bs3.Dropdown = plugins.Plugin.inherit({
     klassName: "Dropdown",
 
-    init : function(element,options) {
+    pluginName : "bs3.dropdown",
+
+    _construct : function(element,options) {
       var $el = this.$element = $(element);
       $el.on('click.bs.dropdown', this.toggle);
       $el.on('keydown.bs.dropdown', '[data-toggle="dropdown"],.dropdown-menu',this.keydown);
@@ -10261,7 +10390,7 @@ define('skylark-bootstrap3/dropdown',[
   }
 
 
-
+  /*
   // DROPDOWN PLUGIN DEFINITION
   // ==========================
 
@@ -10290,13 +10419,28 @@ define('skylark-bootstrap3/dropdown',[
   }
 
 
+
+  return $.fn.dropdown;
+  */
+
   // APPLY TO STANDARD DROPDOWN ELEMENTS
   // ===================================
   $(document)
     .on('click.bs.dropdown.data-api', clearMenus)
     .on('click.bs.dropdown.data-api', '.dropdown form', function (e) { e.stopPropagation() });
 
-  return $.fn.dropdown;
+  plugins.register(Dropdown);
+
+  $.fn.dropdown = function(options) {
+    return this.each(function () {
+      var  plugin = plugins.instantiate(this, "bs3.dropdown");
+      if (typeof option == 'string') {
+        plugin[option]()
+      }
+    });
+  };
+
+  return Dropdown;
 
 });
 
@@ -10307,8 +10451,9 @@ define('skylark-bootstrap3/modal',[
   "skylark-utils-dom/noder",
   "skylark-utils-dom/geom",
   "skylark-utils-dom/query",
+  "skylark-utils-dom/plugins",
   "./bs3"
-],function(langx,browser,eventer,noder,geom,$,bs3){
+],function(langx,browser,eventer,noder,geom,$,plugins,bs3){
 
 /* ========================================================================
  * Bootstrap: modal.js v3.3.7
@@ -10323,10 +10468,12 @@ define('skylark-bootstrap3/modal',[
   // MODAL CLASS DEFINITION
   // ======================
 
-  var Modal = bs3.Modal = bs3.WidgetBase.inherit({
+  var Modal = bs3.Modal = plugins.Plugin.inherit({
     klassName: "Modal",
 
-    init : function(element,options) {
+    pluginName : "bs3.modal",
+
+    _construct : function(element,options) {
       this.options             = options;
       this.$container               = $(options.container || document.body)
       this.$element            = $(element)
@@ -10610,7 +10757,7 @@ define('skylark-bootstrap3/modal',[
     show: true
   }
 
-
+  /*
 
   // MODAL PLUGIN DEFINITION
   // =======================
@@ -10643,6 +10790,30 @@ define('skylark-bootstrap3/modal',[
 
 
   return $.fn.modal;
+  */
+
+  plugins.register(Modal);
+
+  $.fn.modal = function(options,_relatedTarget) {
+    return this.each(function () {
+      var $this   = $(this)
+      var plugin    = plugins.instantiate(this,'bs3.modal',"instance");
+      var options = langx.mixin({}, Modal.DEFAULTS, $this.data(), typeof option == 'object' && option)
+
+      if (!plugin && options.toggle && /show|hide/.test(option)) options.toggle = false
+      if (!plugin) {
+          plugin = plugins.instantiate(this,'bs3.modal',options);
+      }
+      if (typeof option == 'string') {
+        plugin[option](_relatedTarget);
+      } else if (options.show) {
+        plugin.show(_relatedTarget);
+      }
+    });
+  };
+
+  return Modal;
+
 });
 
 define('skylark-bootstrap3/tooltip',[
@@ -10652,8 +10823,9 @@ define('skylark-bootstrap3/tooltip',[
   "skylark-utils-dom/noder",
   "skylark-utils-dom/geom",
   "skylark-utils-dom/query",
+  "skylark-utils-dom/plugins",
   "./bs3"
-],function(langx,browser,eventer,noder,geom,$,bs3){
+],function(langx,browser,eventer,noder,geom,$,plugins,bs3){
 
 /* ========================================================================
  * Bootstrap: tooltip.js v3.3.7
@@ -10669,10 +10841,12 @@ define('skylark-bootstrap3/tooltip',[
   // TOOLTIP PUBLIC CLASS DEFINITION
   // ===============================
 
-  var Tooltip = bs3.Tooltip = bs3.WidgetBase.inherit({
+  var Tooltip = bs3.Tooltip = plugins.Plugin.inherit({
     klassName: "Tooltip",
 
-    init : function(element,options) {
+    pluginName : "bs3.tooltip",
+
+    _construct : function(element,options) {
       this.type       = null
       this.options    = null
       this.enabled    = null
@@ -10743,11 +10917,11 @@ define('skylark-bootstrap3/tooltip',[
 
     enter : function (obj) {
       var self = obj instanceof this.constructor ?
-        obj : $(obj.currentTarget).data('bs.' + this.type)
+        obj : $(obj.currentTarget).plugin(this.pluginName)
 
       if (!self) {
-        self = new this.constructor(obj.currentTarget, this.getDelegateOptions())
-        $(obj.currentTarget).data('bs.' + this.type, self)
+        //self = new this.constructor(obj.currentTarget, this.getDelegateOptions())
+        self = $(obj.currentTarget).plugin(this.pluginName, this.getDelegateOptions())
       }
 
       if (obj instanceof eventer.create) {
@@ -10780,11 +10954,11 @@ define('skylark-bootstrap3/tooltip',[
 
     leave : function (obj) {
       var self = obj instanceof this.constructor ?
-        obj : $(obj.currentTarget).data('bs.' + this.type)
+        obj : $(obj.currentTarget).plugin(this.pluginName)
 
       if (!self) {
-        self = new this.constructor(obj.currentTarget, this.getDelegateOptions())
-        $(obj.currentTarget).data('bs.' + this.type, self)
+        //self = new this.constructor(obj.currentTarget, this.getDelegateOptions())
+        self = $(obj.currentTarget).plugin(this.pluginName, this.getDelegateOptions())
       }
 
       if (obj instanceof eventer.create) {
@@ -10836,10 +11010,10 @@ define('skylark-bootstrap3/tooltip',[
           .detach()
           .css({ top: 0, left: 0, display: 'block' })
           .addClass(placement)
-          .data('bs.' + this.type, this)
+          .data('bs3.' + this.type, this)
 
         this.options.container ? $tip.appendTo(this.options.container) : $tip.insertAfter(this.$element)
-        this.$element.trigger('inserted.bs.' + this.type)
+        this.$element.trigger('inserted.bs3.' + this.type)
 
         var pos          = this.getPosition()
         var actualWidth  = $tip[0].offsetWidth
@@ -10866,7 +11040,7 @@ define('skylark-bootstrap3/tooltip',[
 
         var complete = function () {
           var prevHoverState = that.hoverState
-          that.$element.trigger('shown.bs.' + that.type)
+          that.$element.trigger('shown.bs3.' + that.type)
           that.hoverState = null
 
           if (prevHoverState == 'out') that.leave(that)
@@ -10950,14 +11124,14 @@ define('skylark-bootstrap3/tooltip',[
     hide : function (callback) {
       var that = this
       var $tip = $(this.$tip)
-      var e    = eventer.create('hide.bs.' + this.type)
+      var e    = eventer.create('hide.bs3.' + this.type)
 
       function complete() {
         if (that.hoverState != 'in') $tip.detach()
         if (that.$element) { // TODO: Check whether guarding this code with this `if` is really necessary.
           that.$element
             .removeAttr('aria-describedby')
-            .trigger('hidden.bs.' + that.type)
+            .trigger('hidden.bs3.' + that.type)
         }
         callback && callback()
       }
@@ -11093,10 +11267,10 @@ define('skylark-bootstrap3/tooltip',[
     toggle : function (e) {
       var self = this
       if (e) {
-        self = $(e.currentTarget).data('bs.' + this.type)
+        self = $(e.currentTarget).plugin(this.pluginName)
         if (!self) {
-          self = new this.constructor(e.currentTarget, this.getDelegateOptions())
-          $(e.currentTarget).data('bs.' + this.type, self)
+          //self = new this.constructor(e.currentTarget, this.getDelegateOptions())
+          self = $(e.currentTarget).plugin(this.pluginName, this.getDelegateOptions());
         }
       }
 
@@ -11113,7 +11287,7 @@ define('skylark-bootstrap3/tooltip',[
       var that = this
       clearTimeout(this.timeout)
       this.hide(function () {
-        that.$element.off('.' + that.type).removeData('bs.' + that.type)
+        that.$element.off('.' + that.type).removeData('bs3.' + that.type)
         if (that.$tip) {
           that.$tip.detach()
         }
@@ -11149,6 +11323,7 @@ define('skylark-bootstrap3/tooltip',[
   }
 
 
+  /*
   // TOOLTIP PLUGIN DEFINITION
   // =========================
 
@@ -11179,6 +11354,26 @@ define('skylark-bootstrap3/tooltip',[
   }
 
   return $.fn.tooltip;
+  */
+
+  plugins.register(Tooltip);
+
+  $.fn.tooltip = function(option) {
+    return this.each(function () {
+      var $this   = $(this)
+      var plugin    = plugins.instantiate(this,'bs3.tooltip',"instance");
+      var options = typeof option == 'object' && option
+
+      if (!plugin && /destroy|hide/.test(option)) return
+ 
+      if (!plugin) {
+          plugin = plugins.instantiate(this,'bs3.tooltip',options);
+      }
+      if (typeof option == 'string') plugin[option]()
+    });
+  };
+
+  return Tooltip;
 
 });
 
@@ -11187,9 +11382,10 @@ define('skylark-bootstrap3/popover',[
   "skylark-langx/langx",
   "skylark-utils-dom/eventer",
   "skylark-utils-dom/query",
+  "skylark-utils-dom/plugins",
   "./bs3",
   "./tooltip" 
-],function(browser,langx,eventer,$,bs3,tooltip){
+],function(browser,langx,eventer,$,plugins,bs3,Tooltip){
 /* ========================================================================
  * Bootstrap: popover.js v3.3.7
  * http://getbootstrap.com/javascript/#popovers
@@ -11203,10 +11399,12 @@ define('skylark-bootstrap3/popover',[
   // POPOVER PUBLIC CLASS DEFINITION
   // ===============================
 
-  var Popover = bs3.Popover = tooltip.Constructor.inherit({
+  var Popover = bs3.Popover = Tooltip.inherit({
     klassName: "Popover",
 
-    init : function(element,options) {
+    pluginName : "bs3.popover",
+
+    _construct : function(element,options) {
       this.overrided(element,options);
       this.type = "popover";
     },
@@ -11253,7 +11451,7 @@ define('skylark-bootstrap3/popover',[
 
   Popover.VERSION  = '3.3.7'
 
-  Popover.DEFAULTS = langx.mixin({}, $.fn.tooltip.Constructor.DEFAULTS, {
+  Popover.DEFAULTS = langx.mixin({}, Tooltip.DEFAULTS, {
     placement: 'right',
     trigger: 'click',
     content: '',
@@ -11264,6 +11462,7 @@ define('skylark-bootstrap3/popover',[
   // NOTE: POPOVER EXTENDS tooltip.js
   // ================================
 
+  /*
 
   // POPOVER PLUGIN DEFINITION
   // =========================
@@ -11295,6 +11494,27 @@ define('skylark-bootstrap3/popover',[
   };
 
   return $.fn.popover;
+  */
+
+  plugins.register(Popover);
+
+  $.fn.popover = function(option) {
+    return this.each(function () {
+      var $this   = $(this)
+      var plugin    = plugins.instantiate(this,'bs3.popover',"instance");
+      var options = typeof option == 'object' && option
+
+      if (!plugin && /destroy|hide/.test(option)) return
+ 
+      if (!plugin) {
+          plugin = plugins.instantiate(this,'bs3.popover',options);
+      }
+      if (typeof option == 'string') plugin[option]()
+    });
+  };
+
+  return Popover;
+
 });
 
 define('skylark-bootstrap3/scrollspy',[
@@ -11304,8 +11524,9 @@ define('skylark-bootstrap3/scrollspy',[
   "skylark-utils-dom/noder",
   "skylark-utils-dom/geom",
   "skylark-utils-dom/query",
+  "skylark-utils-dom/plugins",
   "./bs3"
-],function(langx,browser,eventer,noder,geom,$,bs3){
+],function(langx,browser,eventer,noder,geom,$,plugins,bs3){
 
 /* ========================================================================
  * Bootstrap: scrollspy.js v3.3.7
@@ -11320,10 +11541,12 @@ define('skylark-bootstrap3/scrollspy',[
   // SCROLLSPY CLASS DEFINITION
   // ==========================
 
-  var ScrollSpy = bs3.ScrollSpy = bs3.WidgetBase.inherit({
+  var ScrollSpy = bs3.ScrollSpy = plugins.Plugin.inherit({
     klassName: "ScrollSpy",
 
-    init : function(element,options) {
+    pluginName : "bs3.scrollspy",
+
+    _construct : function(element,options) {
       this.$body          = $(document.body)
       this.$scrollElement = $(element).is(document.body) ? $(window) : $(element)
       this.options        = langx.mixin({}, ScrollSpy.DEFAULTS, options)
@@ -11441,6 +11664,8 @@ define('skylark-bootstrap3/scrollspy',[
     offset: 10
   }
 
+  /*
+
   // SCROLLSPY PLUGIN DEFINITION
   // ===========================
   var old = $.fn.scrollspy;
@@ -11470,6 +11695,21 @@ define('skylark-bootstrap3/scrollspy',[
 
 
   return $.fn.scrollspy;
+  */
+
+  plugins.register(ScrollSpy);
+
+  $.fn.scrollspy = function(options) {
+    return this.each(function () {
+      var options = typeof option == 'object' && option
+      var  plugin = plugins.instantiate(this, "bs3.scrollspy",options);
+      if (typeof option == 'string') {
+        plugin[option]()
+      }
+    });
+  };
+
+  return ScrollSpy;
 
 });
 
@@ -11480,8 +11720,9 @@ define('skylark-bootstrap3/tab',[
   "skylark-utils-dom/noder",
   "skylark-utils-dom/geom",
   "skylark-utils-dom/query",
+  "skylark-utils-dom/plugins",
   "./bs3"
-],function(langx,browser,eventer,noder,geom,$,bs3){
+],function(langx,browser,eventer,noder,geom,$,plugins,bs3){
 
 /* ========================================================================
  * Bootstrap: tab.js v3.3.7
@@ -11497,10 +11738,12 @@ define('skylark-bootstrap3/tab',[
   // ====================
 
 
-  var Tab = bs3.Tab = bs3.WidgetBase.inherit({
+  var Tab = bs3.Tab = plugins.Plugin.inherit({
     klassName: "Tab",
 
-    init : function(element,options) {
+    pluginName : "bs3.tab",
+
+    _construct : function(element,options) {
       // jscs:disable requireDollarBeforejQueryAssignment
       this.element = $(element)
       this.target = options && options.target;
@@ -11608,6 +11851,7 @@ define('skylark-bootstrap3/tab',[
 
   Tab.TRANSITION_DURATION = 150
 
+  /*
   // TAB PLUGIN DEFINITION
   // =====================
 
@@ -11636,6 +11880,21 @@ define('skylark-bootstrap3/tab',[
   }
 
   return $.fn.tab;
+  */
+
+  plugins.register(Tab);
+
+  $.fn.tab = function(options) {
+    return this.each(function () {
+      var options = typeof option == 'object' && option
+      var  plugin = plugins.instantiate(this, "bs3.tab",options);
+      if (typeof option == 'string') {
+        plugin[option]()
+      }
+    });
+  };
+
+  return Tab;
 
 });
 

@@ -24,10 +24,12 @@ requirejs.config({
 });
  
 // require(["module/name", ...], function(params){ ... });
-require(["skylark-utils-dom"], function (sutils) {
-    require(["skylark-bootstrap3"], function ($) {
+require(["skylark-langx/langx","skylark-utils-dom"], function (slangx,sdom) {
+    require(["skylark-bootstrap3"], function () {
+        //loaded();
+        var $ = sdom.query;
         if (window.initPage) {
-            window.initPage($,sutils);
+            window.initPage($,sdom,slangx);
         }
     });
 });

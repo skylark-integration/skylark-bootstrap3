@@ -5,8 +5,9 @@ define([
   "skylark-utils-dom/noder",
   "skylark-utils-dom/geom",
   "skylark-utils-dom/query",
+  "skylark-utils-dom/plugins",
   "./bs3"
-],function(langx,browser,eventer,noder,geom,$,bs3){
+],function(langx,browser,eventer,noder,geom,$,plugins,bs3){
 
 /* ========================================================================
  * Bootstrap: tooltip.js v3.3.7
@@ -22,10 +23,12 @@ define([
   // TOOLTIP PUBLIC CLASS DEFINITION
   // ===============================
 
-  var Tooltip = bs3.Tooltip = bs3.WidgetBase.inherit({
+  var Tooltip = bs3.Tooltip = plugins.Plugin.inherit({
     klassName: "Tooltip",
 
-    init : function(element,options) {
+    pluginName : "bs3.tooltip",
+
+    _construct : function(element,options) {
       this.type       = null
       this.options    = null
       this.enabled    = null
@@ -96,11 +99,11 @@ define([
 
     enter : function (obj) {
       var self = obj instanceof this.constructor ?
-        obj : $(obj.currentTarget).data('bs.' + this.type)
+        obj : $(obj.currentTarget).plugin(this.pluginName)
 
       if (!self) {
-        self = new this.constructor(obj.currentTarget, this.getDelegateOptions())
-        $(obj.currentTarget).data('bs.' + this.type, self)
+        //self = new this.constructor(obj.currentTarget, this.getDelegateOptions())
+        self = $(obj.currentTarget).plugin(this.pluginName, this.getDelegateOptions())
       }
 
       if (obj instanceof eventer.create) {
@@ -133,11 +136,11 @@ define([
 
     leave : function (obj) {
       var self = obj instanceof this.constructor ?
-        obj : $(obj.currentTarget).data('bs.' + this.type)
+        obj : $(obj.currentTarget).plugin(this.pluginName)
 
       if (!self) {
-        self = new this.constructor(obj.currentTarget, this.getDelegateOptions())
-        $(obj.currentTarget).data('bs.' + this.type, self)
+        //self = new this.constructor(obj.currentTarget, this.getDelegateOptions())
+        self = $(obj.currentTarget).plugin(this.pluginName, this.getDelegateOptions())
       }
 
       if (obj instanceof eventer.create) {
@@ -189,10 +192,10 @@ define([
           .detach()
           .css({ top: 0, left: 0, display: 'block' })
           .addClass(placement)
-          .data('bs.' + this.type, this)
+          .data('bs3.' + this.type, this)
 
         this.options.container ? $tip.appendTo(this.options.container) : $tip.insertAfter(this.$element)
-        this.$element.trigger('inserted.bs.' + this.type)
+        this.$element.trigger('inserted.bs3.' + this.type)
 
         var pos          = this.getPosition()
         var actualWidth  = $tip[0].offsetWidth
@@ -219,7 +222,7 @@ define([
 
         var complete = function () {
           var prevHoverState = that.hoverState
-          that.$element.trigger('shown.bs.' + that.type)
+          that.$element.trigger('shown.bs3.' + that.type)
           that.hoverState = null
 
           if (prevHoverState == 'out') that.leave(that)
@@ -303,14 +306,14 @@ define([
     hide : function (callback) {
       var that = this
       var $tip = $(this.$tip)
-      var e    = eventer.create('hide.bs.' + this.type)
+      var e    = eventer.create('hide.bs3.' + this.type)
 
       function complete() {
         if (that.hoverState != 'in') $tip.detach()
         if (that.$element) { // TODO: Check whether guarding this code with this `if` is really necessary.
           that.$element
             .removeAttr('aria-describedby')
-            .trigger('hidden.bs.' + that.type)
+            .trigger('hidden.bs3.' + that.type)
         }
         callback && callback()
       }
@@ -446,10 +449,10 @@ define([
     toggle : function (e) {
       var self = this
       if (e) {
-        self = $(e.currentTarget).data('bs.' + this.type)
+        self = $(e.currentTarget).plugin(this.pluginName)
         if (!self) {
-          self = new this.constructor(e.currentTarget, this.getDelegateOptions())
-          $(e.currentTarget).data('bs.' + this.type, self)
+          //self = new this.constructor(e.currentTarget, this.getDelegateOptions())
+          self = $(e.currentTarget).plugin(this.pluginName, this.getDelegateOptions());
         }
       }
 
@@ -466,7 +469,7 @@ define([
       var that = this
       clearTimeout(this.timeout)
       this.hide(function () {
-        that.$element.off('.' + that.type).removeData('bs.' + that.type)
+        that.$element.off('.' + that.type).removeData('bs3.' + that.type)
         if (that.$tip) {
           that.$tip.detach()
         }
@@ -502,6 +505,7 @@ define([
   }
 
 
+  /*
   // TOOLTIP PLUGIN DEFINITION
   // =========================
 
@@ -532,5 +536,25 @@ define([
   }
 
   return $.fn.tooltip;
+  */
+
+  plugins.register(Tooltip);
+
+  $.fn.tooltip = function(option) {
+    return this.each(function () {
+      var $this   = $(this)
+      var plugin    = plugins.instantiate(this,'bs3.tooltip',"instance");
+      var options = typeof option == 'object' && option
+
+      if (!plugin && /destroy|hide/.test(option)) return
+ 
+      if (!plugin) {
+          plugin = plugins.instantiate(this,'bs3.tooltip',options);
+      }
+      if (typeof option == 'string') plugin[option]()
+    });
+  };
+
+  return Tooltip;
 
 });

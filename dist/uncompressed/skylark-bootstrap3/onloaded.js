@@ -1,4 +1,5 @@
 define([
+ 	"skylark-langx/langx",
  	"skylark-utils-dom/query",
 	"./affix",
 	"./alert",
@@ -12,10 +13,18 @@ define([
 	"./tab",
 	"./tooltip",
 	"./transition"
-],function($){
+],function(langx,$){
+  function getTargetFromTrigger($trigger) {
+    var href
+    var target = $trigger.attr('data-target')
+      || (href = $trigger.attr('href')) && href.replace(/.*(?=#[^\s]+$)/, '') // strip for ie7
+
+    return $(target)
+  }
+
 	var init = function() {
     
-		$(window).on('load', function () {
+		$(function () {
 		    // AFFIX DATA-API
 		    // =================
 			$('[data-spy="affix"]').each(function () {
@@ -37,7 +46,7 @@ define([
 
   			// BUTTON DATA-API
 		    // =================
-			$(document).on('click.bs.button.data-api', '[data-toggle^="button"]', function (e) {
+			$(document).on('click.bs3.button.data-api', '[data-toggle^="button"]', function (e) {
 				var $btn = $(e.target).closest('.btn')
 				$btn.button('toggle');
 				if (!($(e.target).is('input[type="radio"], input[type="checkbox"]'))) {
@@ -50,7 +59,7 @@ define([
 						$btn.find('input:visible,button:visible').first().trigger('focus');
 					}
 				}
-			}).on('focus.bs.button.data-api blur.bs.button.data-api', '[data-toggle^="button"]', function (e) {
+			}).on('focus.bs3.button.data-api blur.bs3.button.data-api', '[data-toggle^="button"]', function (e) {
 				$(e.target).closest('.btn').toggleClass('focus', /^focus(in)?$/.test(e.type));
 			});
 
@@ -61,7 +70,7 @@ define([
 				$this.carousel($this.data());
 			});
 
-            $(document).on("click.bs.carousel.data-api", "[data-slide],[data-slide-to]", function(e) {
+            $(document).on("click.bs3.carousel.data-api", "[data-target][data-slide],[data-target][data-slide-to],[href][data-slide],[href][data-slide-to]", function(e) {
 	            var href
 	            var $this = $(this)
 	            var $target = $($this.attr('data-target') || (href = $this.attr('href')) && href.replace(/.*(?=#[^\s]+$)/, '')) // strip for ie7
@@ -73,7 +82,7 @@ define([
 	            $target.carousel(options);
 
 	            if (slideIndex) {
-	                $target.data('bs.carousel').to(slideIndex);
+	                $target.plugin('bs3.carousel').to(slideIndex);
 	            }
 
 	            e.preventDefault();
@@ -82,13 +91,13 @@ define([
  
 			// COLLAPSE DATA-API
 			// =================
-  		    $(document).on('click.bs.collapse.data-api', '[data-toggle="collapse"]', function (e) {
+  		    $(document).on('click.bs3.collapse.data-api', '[data-target][data-toggle="collapse"]', function (e) {
 			    var $this   = $(this)
 
 			    if (!$this.attr('data-target')) e.preventDefault()
 
 			    var $target = getTargetFromTrigger($this)
-			    var data    = $target.data('bs.collapse')
+			    var data    = $target.plugin('bs3.collapse')
 			    var option  = data ? 'toggle' : $this.data()
 
 			    $target.collapse(option);
@@ -103,17 +112,17 @@ define([
 
 			// MODAL DATA-API
 			// ==============
-			$(document).on('click.bs.modal.data-api', '[data-toggle="modal"]', function (e) {
+			$(document).on('click.bs3.modal.data-api', '[data-toggle="modal"]', function (e) {
 				var $this   = $(this)
 				var href    = $this.attr('href')
 				var $target = $($this.attr('data-target') || (href && href.replace(/.*(?=#[^\s]+$)/, ''))) // strip for ie7
-				var option  = $target.data('bs.modal') ? 'toggle' : langx.mixin({ remote: !/#/.test(href) && href }, $target.data(), $this.data())
+				var option  = $target.data('bse.modal') ? 'toggle' : langx.mixin({ remote: !/#/.test(href) && href }, $target.data(), $this.data())
 
 				if ($this.is('a')) e.preventDefault()
 
-				$target.one('show.bs.modal', function (showEvent) {
+				$target.one('show.bs3.modal', function (showEvent) {
 			  		if (showEvent.isDefaultPrevented()) return // only register focus restorer if modal will actually get shown
-			  		$target.one('hidden.bs.modal', function () {
+			  		$target.one('hidden.bs3.modal', function () {
 			    		$this.is(':visible') && $this.trigger('focus')
 			  		})
 				})
@@ -136,8 +145,8 @@ define([
 			};
 
   			$(document)
-    			.on('click.bs.tab.data-api', '[data-toggle="tab"]', clickHandler)
-    			.on('click.bs.tab.data-api', '[data-toggle="pill"]', clickHandler);
+    			.on('click.bs3.tab.data-api', '[data-toggle="tab"]', clickHandler)
+    			.on('click.bs3.tab.data-api', '[data-toggle="pill"]', clickHandler);
 
   		})
 	};

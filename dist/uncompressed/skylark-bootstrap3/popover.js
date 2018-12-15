@@ -3,9 +3,10 @@ define([
   "skylark-langx/langx",
   "skylark-utils-dom/eventer",
   "skylark-utils-dom/query",
+  "skylark-utils-dom/plugins",
   "./bs3",
   "./tooltip" 
-],function(browser,langx,eventer,$,bs3,tooltip){
+],function(browser,langx,eventer,$,plugins,bs3,Tooltip){
 /* ========================================================================
  * Bootstrap: popover.js v3.3.7
  * http://getbootstrap.com/javascript/#popovers
@@ -19,10 +20,12 @@ define([
   // POPOVER PUBLIC CLASS DEFINITION
   // ===============================
 
-  var Popover = bs3.Popover = tooltip.Constructor.inherit({
+  var Popover = bs3.Popover = Tooltip.inherit({
     klassName: "Popover",
 
-    init : function(element,options) {
+    pluginName : "bs3.popover",
+
+    _construct : function(element,options) {
       this.overrided(element,options);
       this.type = "popover";
     },
@@ -69,7 +72,7 @@ define([
 
   Popover.VERSION  = '3.3.7'
 
-  Popover.DEFAULTS = langx.mixin({}, $.fn.tooltip.Constructor.DEFAULTS, {
+  Popover.DEFAULTS = langx.mixin({}, Tooltip.DEFAULTS, {
     placement: 'right',
     trigger: 'click',
     content: '',
@@ -80,6 +83,7 @@ define([
   // NOTE: POPOVER EXTENDS tooltip.js
   // ================================
 
+  /*
 
   // POPOVER PLUGIN DEFINITION
   // =========================
@@ -111,4 +115,25 @@ define([
   };
 
   return $.fn.popover;
+  */
+
+  plugins.register(Popover);
+
+  $.fn.popover = function(option) {
+    return this.each(function () {
+      var $this   = $(this)
+      var plugin    = plugins.instantiate(this,'bs3.popover',"instance");
+      var options = typeof option == 'object' && option
+
+      if (!plugin && /destroy|hide/.test(option)) return
+ 
+      if (!plugin) {
+          plugin = plugins.instantiate(this,'bs3.popover',options);
+      }
+      if (typeof option == 'string') plugin[option]()
+    });
+  };
+
+  return Popover;
+
 });

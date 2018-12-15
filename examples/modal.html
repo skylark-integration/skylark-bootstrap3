@@ -167,7 +167,7 @@
 </div>
 
 <!-- JavaScript Includes -->
-<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.3/require.js" data-main="./config.js"></script>
+<script type="text/javascript" src="./requirejs/require.js" data-main="./config.js"></script>
 <!--    <script src="../vendor/jquery.min.js"></script>
     <script src="../dist/js/bootstrap.js"></script>
 <script src="../vendor/jquery.min.js"></script>
@@ -179,7 +179,7 @@
 -->
 <!-- JavaScript Test -->
 <script>
-    var initPage = function ($,sutils) {
+    var initPage = function ($,sdom,slangx) {
 
         var firefoxTestDone = false
         function reportFirefoxTestResult(result) {
@@ -197,7 +197,7 @@
             var $this   = $(this)
             var href    = $this.attr('href')
             var $target = $($this.attr('data-target') || (href && href.replace(/.*(?=#[^\s]+$)/, ''))) // strip for ie7
-            var option  = $target.data('bs.modal') ? 'toggle' : sutils.langx.mixin({ remote: !/#/.test(href) && href }, $target.data(), $this.data())
+            var option  = $target.data('bs.modal') ? 'toggle' : slangx.mixin({ remote: !/#/.test(href) && href }, $target.data(), $this.data())
 
             if ($this.is('a')) e.preventDefault()
 

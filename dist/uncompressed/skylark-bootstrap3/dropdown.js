@@ -5,8 +5,9 @@ define([
   "skylark-utils-dom/noder",
   "skylark-utils-dom/geom",
   "skylark-utils-dom/query",
+  "skylark-utils-dom/plugins",
   "./bs3"
-],function(langx,browser,eventer,noder,geom,$,bs3){
+],function(langx,browser,eventer,noder,geom,$,plugins,bs3){
 
 /* ========================================================================
  * Bootstrap: dropdown.js v3.3.7
@@ -23,10 +24,12 @@ define([
   var backdrop = '.dropdown-backdrop';
   var toggle   = '[data-toggle="dropdown"]';
 
-  var Dropdown = bs3.Dropdown = bs3.WidgetBase.inherit({
+  var Dropdown = bs3.Dropdown = plugins.Plugin.inherit({
     klassName: "Dropdown",
 
-    init : function(element,options) {
+    pluginName : "bs3.dropdown",
+
+    _construct : function(element,options) {
       var $el = this.$element = $(element);
       $el.on('click.bs.dropdown', this.toggle);
       $el.on('keydown.bs.dropdown', '[data-toggle="dropdown"],.dropdown-menu',this.keydown);
@@ -139,7 +142,7 @@ define([
   }
 
 
-
+  /*
   // DROPDOWN PLUGIN DEFINITION
   // ==========================
 
@@ -168,12 +171,27 @@ define([
   }
 
 
+
+  return $.fn.dropdown;
+  */
+
   // APPLY TO STANDARD DROPDOWN ELEMENTS
   // ===================================
   $(document)
     .on('click.bs.dropdown.data-api', clearMenus)
     .on('click.bs.dropdown.data-api', '.dropdown form', function (e) { e.stopPropagation() });
 
-  return $.fn.dropdown;
+  plugins.register(Dropdown);
+
+  $.fn.dropdown = function(options) {
+    return this.each(function () {
+      var  plugin = plugins.instantiate(this, "bs3.dropdown");
+      if (typeof option == 'string') {
+        plugin[option]()
+      }
+    });
+  };
+
+  return Dropdown;
 
 });
