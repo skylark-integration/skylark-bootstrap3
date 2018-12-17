@@ -147,18 +147,13 @@ define([
   return $.fn.button;
   */
 
-  plugins.register(Button);
-
-  $.fn.button = function(options) {
-    return this.each(function () {
-      var  plugin = plugins.instantiate(this, "bs3.button");
+  plugins.register(Button,"button",function(plugin,options){
       if (options == 'toggle') {
         plugin.toggle();
       } else if (options) {
         plugin.setState(options);
-      }
-    });
-  };
+      }    
+  });
 
   return Button;
 });

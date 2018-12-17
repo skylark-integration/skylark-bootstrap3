@@ -70,16 +70,5 @@ define([
 		isDownArrow: isDownArrow
 	});
 
-/*---------------------------------------------------------------------------------*/
-
-	var WidgetBase = langx.Evented.inherit({
-        klassName: "WidgetBase",
-    });
-
-
-	langx.mixin(bs3, {
-		WidgetBase : WidgetBase
-	});
-
 	return bs3;
 });

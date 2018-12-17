@@ -5089,9 +5089,9 @@ define('skylark-utils-dom/finder',[
 
         parent: parent,
 
-        previousSibling: previousSibling,
+        previousSibling,
 
-        previousSiblings: previousSiblings,
+        previousSiblings,
 
         pseudos: local.pseudos,
 
@@ -8639,12 +8639,12 @@ define('skylark-utils-dom/elmx',[
             if (langx.isString(node)) {
                 node = document.getElementById(node);
             }
-            this.domNode = node;
+            this._elm = node;
         }
     });
 
     VisualElement.prototype.$ = VisualElement.prototype.query = function(selector) {
-        return $(selector,this.domNode);
+        return $(selector,this._elm);
     };
 
     /*
@@ -8666,7 +8666,7 @@ define('skylark-utils-dom/elmx',[
     function _delegator(fn, context) {
         return function() {
             var self = this,
-                elem = self.domNode,
+                elem = self._elm,
                 ret = fn.apply(context, [elem].concat(slice.call(arguments)));
 
             if (ret) {
@@ -8905,77 +8905,123 @@ define('skylark-utils-dom/plugins',[
 
     var slice = Array.prototype.slice,
         concat = Array.prototype.concat,
-        pluginKlasses = {};
-
-
-    /*
-     * Register a plugin type
-     */
-    function register( pluginKlass,shortcut) {
-        var name = pluginKlass.prototype.pluginName;
-        
-        pluginKlasses[name] = pluginKlass;
-
-        if (shortcut) {
-            elmx.partial(shortcut,$.fn[shortcut] = function(options) {
-                var args = slice.call(arguments,0);
-                args.unshift(name);
-                return this.plugin.apply(this,args);
-            });
-        }
-    }
+        pluginKlasses = {},
+        shortcuts = {};
 
     /*
-     * Create or get a plugin instance assocated with the element,
-     * also you can execute the plugin method directory;
+     * Create or get or destory a plugin instance assocated with the element.
      */
     function instantiate(elm,pluginName,options) {
-
         var pluginInstance = datax.data( elm, pluginName );
 
         if (options === "instance") {
             return pluginInstance;
-        }
-
-        var isMethodCall = typeof options === "string",
-            args = slice.call( arguments, 2 ),
-            returnValue = this;
-
-        if ( isMethodCall ) {
-            var methodName = options;
-
-            if ( !pluginInstance ) {
-                return langx.error( "cannot call methods on " + pluginName +
-                    " prior to initialization; " +
-                    "attempted to call method '" + methodName + "'" );
+        } else if (options === "destroy") {
+            if (!pluginInstance) {
+                throw new Error ("The plugin instance is not existed");
             }
-
-            if ( !langx.isFunction( pluginInstance[ methodName ] ) || methodName.charAt( 0 ) === "_" ) {
-                return langx.error( "no such method '" + methodName + "' for " + pluginName +
-                    " plugin instance" );
-            }
-
-            return pluginInstance[ methodName ].apply( pluginInstance, args );
-
+            pluginInstance.destroy();
+            datax.removeData( elm, pluginName);
+            pluginInstance = undefined;
         } else {
-            // Allow multiple hashes to be passed on init
-            if ( args.length ) {
-                options = langx.mixin.apply( langx, [{},options ].concat( args ) );
-            }
-
-            if ( pluginInstance ) {
-                pluginInstance.option( options || {} );
-            } else {
+            if (!pluginInstance) {
+                if (options !== undefined && typeof options !== "object") {
+                    throw new Error ("The options must be a plain object");
+                }
                 var pluginKlass = pluginKlasses[pluginName]; 
                 pluginInstance = new pluginKlass(elm,options);
                 datax.data( elm, pluginName,pluginInstance );
+            } else if (options) {
+                pluginInstance.reset(options);
             }
-            return pluginInstance;
         }
 
-        return returnValue;
+        return pluginInstance;
     }
 
+    function shortcutter(pluginName,extfn) {
+       /*
+        * Create or get or destory a plugin instance assocated with the element,
+        * and also you can execute the plugin method directory;
+        */
+        return function (elm,options) {
+            var  plugin = instantiate(elm, pluginName,"instance");
+            if ( options === "instance" ) {
+              return plugin || null;
+            }
+            if (!plugin) {
+                plugin = instantiate(elm, pluginName,typeof options == 'object' && options || {});
+            }
+
+            if (options) {
+                var args = slice.call(arguments,1);
+                if (extfn) {
+                    return extfn.apply(plugin,args);
+                } else {
+                    if (typeof options == 'string') {
+                        var methodName = options;
+
+                        if ( !plugin ) {
+                            throw new Error( "cannot call methods on " + pluginName +
+                                " prior to initialization; " +
+                                "attempted to call method '" + methodName + "'" );
+                        }
+
+                        if ( !langx.isFunction( plugin[ methodName ] ) || methodName.charAt( 0 ) === "_" ) {
+                            throw new Error( "no such method '" + methodName + "' for " + pluginName +
+                                " plugin instance" );
+                        }
+
+                        plugin[methodName].apply(plugin,args);
+                    }                
+                }                
+            }
+
+        }
+
+    }
+
+    /*
+     * Register a plugin type
+     */
+    function register( pluginKlass,shortcutName,extfn) {
+        var pluginName = pluginKlass.prototype.pluginName;
+        
+        pluginKlasses[pluginName] = pluginKlass;
+
+        if (shortcutName) {
+            var shortcut = shortcuts[shortcutName] = shortcutter(pluginName,extfn);
+                
+            $.fn[shortcutName] = function(options) {
+                var returnValue = this;
+
+                if ( !this.length && options === "instance" ) {
+                  returnValue = undefined;
+                } else {
+                  this.each(function () {
+                    var  ret  = shortcut(this,options);
+                    if (ret !== undefined) {
+                        returnValue = ret;
+                        return false;
+                    }
+                  });
+                }
+
+                return returnValue;
+            };
+
+            elmx.partial(shortcutName,function(options) {
+                var  ret  = shortcut(this._elm,options);
+                if (ret === undefined) {
+                    ret = this;
+                }
+                return ret;
+            });
+
+        }
+    }
+
+ 
     var Plugin =   langx.Evented.inherit({
         klassName: "Plugin",
 
@@ -9121,12 +9167,10 @@ define('skylark-utils-dom/plugins',[
     }
      
     langx.mixin(plugins, {
-        instantiate : instantiate,
-        
-        Plugin : Plugin,
-
-        register : register
-
+        instantiate,
+        Plugin,
+        register,
+        shortcuts
     });
 
     return plugins;
@@ -9201,17 +9245,6 @@ define('skylark-bootstrap3/bs3',[
 		isTabKey: isTabKey,
 		isUpArrow: isUpArrow,
 		isDownArrow: isDownArrow
-	});
-
-/*---------------------------------------------------------------------------------*/
-
-	var WidgetBase = langx.Evented.inherit({
-        klassName: "WidgetBase",
-    });
-
-
-	langx.mixin(bs3, {
-		WidgetBase : WidgetBase
 	});
 
 	return bs3;
@@ -9382,17 +9415,7 @@ define('skylark-bootstrap3/affix',[
   return $.fn.affix;
   */
 
-  plugins.register(Affix);
-
-  $.fn.affix = function(option) {
-    return this.each(function () {
-      var options = typeof option == 'object' && option
-      var  plugin = plugins.instantiate(this, "bs3.affix",options);
-      if (typeof option == 'string') {
-        plugin[option]()
-      }
-    });
-  };
+  plugins.register(Affix,"affix");
 
   return Affix;
 });
@@ -9515,17 +9538,7 @@ define('skylark-bootstrap3/alert',[
   return $.fn.alert;
   */
 
-  plugins.register(Alert);
-
-  $.fn.alert = function(options) {
-    return this.each(function () {
-      var options = typeof option == 'object' && option
-      var  plugin = plugins.instantiate(this, "bs3.alert",options);
-      if (typeof option == 'string') {
-        plugin[option]()
-      }
-    });
-  };
+  plugins.register(Alert,"alert");
 
   return Alert;
 
@@ -9680,18 +9693,13 @@ define('skylark-bootstrap3/button',[
   return $.fn.button;
   */
 
-  plugins.register(Button);
-
-  $.fn.button = function(options) {
-    return this.each(function () {
-      var  plugin = plugins.instantiate(this, "bs3.button");
+  plugins.register(Button,"button",function(plugin,options){
       if (options == 'toggle') {
         plugin.toggle();
       } else if (options) {
         plugin.setState(options);
-      }
-    });
-  };
+      }    
+  });
 
   return Button;
 });
@@ -9759,15 +9767,8 @@ define('skylark-bootstrap3/carousel',[
 
         pluginName: "bs3.carousel",
 
-        options : {
-            interval: 5000,
-            pause: 'hover',
-            wrap: true,
-            keyboard: true
-
-        },
-
         _construct: function(element, options) {
+            options = langx.mixin({}, Carousel.DEFAULTS, $(element).data(), options);
             //this.options = options
             this.overrided(element,options);
 
@@ -9976,27 +9977,17 @@ define('skylark-bootstrap3/carousel',[
         })
     }
     */
-    plugins.register(Carousel);
-
-    $.fn.carousel = function(option) {
-        return this.each(function () {
-            var $this = $(this)
-            var plugin = plugins.instantiate(this,'bs3.carousel',"instance");
-            var options = langx.mixin({}, Carousel.DEFAULTS, $this.data(), typeof option == 'object' && option)
-            var action = typeof option == 'string' ? option : options.slide
-
-            if (!plugin) {
-                plugin = plugins.instantiate(this,'bs3.carousel',options);
-            }
-            if (typeof option == 'number') {
-                plugin.to(option);
-            } else if (action) {
-                plugin[action]()
-            } else if (options.interval) {
-                plugin.pause().cycle();
-            }
-        });
-    };
+    plugins.register(Carousel,"carousel",function(options){
+        //this -> plugin instance
+        var action = typeof options == 'string' ? options : options.slide
+        if (typeof options == 'number') {
+            this.to(options);
+        } else if (action) {
+            this[action]()
+        } else if (options.interval) {
+            this.pause().cycle();
+        }        
+    });
 
     return Carousel;
 
@@ -10034,12 +10025,8 @@ define('skylark-bootstrap3/collapse',[
 
     pluginName : "bs3.collapse",
 
-    options : {
-      toggle: true
-    },
-
     _construct : function(element,options) {
-      //this.options       = langx.mixin({}, Collapse.DEFAULTS, options)
+      options = langx.mixin({}, Collapse.DEFAULTS, $(element).data(), options)
       this.overrided(element,options);
 
       this.$element      = $(element)
@@ -10226,21 +10213,7 @@ define('skylark-bootstrap3/collapse',[
   }
   */
 
-  plugins.register(Collapse);
-
-  $.fn.collapse = function(option) {
-    return this.each(function () {
-      var $this   = $(this)
-      var plugin    = plugins.instantiate(this,'bs3.collapse',"instance");
-      var options = langx.mixin({}, Collapse.DEFAULTS, $this.data(), typeof option == 'object' && option)
-
-      if (!plugin && options.toggle && /show|hide/.test(option)) options.toggle = false
-      if (!plugin) {
-          plugin = plugins.instantiate(this,'bs3.collapse',options);
-      }
-      if (typeof option == 'string') plugin[option]()
-    });
-  };
+  plugins.register(Collapse,"collapse");
 
   return Collapse;
 
@@ -10429,16 +10402,7 @@ define('skylark-bootstrap3/dropdown',[
     .on('click.bs.dropdown.data-api', clearMenus)
     .on('click.bs.dropdown.data-api', '.dropdown form', function (e) { e.stopPropagation() });
 
-  plugins.register(Dropdown);
-
-  $.fn.dropdown = function(options) {
-    return this.each(function () {
-      var  plugin = plugins.instantiate(this, "bs3.dropdown");
-      if (typeof option == 'string') {
-        plugin[option]()
-      }
-    });
-  };
+  plugins.register(Dropdown,"dropdown");
 
   return Dropdown;
 
@@ -10474,7 +10438,8 @@ define('skylark-bootstrap3/modal',[
     pluginName : "bs3.modal",
 
     _construct : function(element,options) {
-      this.options             = options;
+      options = langx.mixin({}, Modal.DEFAULTS, $(element).data(), options)
+      this.overrided(element,options);
       this.$container               = $(options.container || document.body)
       this.$element            = $(element)
       this.$dialog             = this.$element.find('.modal-dialog')
@@ -10792,25 +10757,14 @@ define('skylark-bootstrap3/modal',[
   return $.fn.modal;
   */
 
-  plugins.register(Modal);
-
-  $.fn.modal = function(options,_relatedTarget) {
-    return this.each(function () {
-      var $this   = $(this)
-      var plugin    = plugins.instantiate(this,'bs3.modal',"instance");
-      var options = langx.mixin({}, Modal.DEFAULTS, $this.data(), typeof option == 'object' && option)
-
-      if (!plugin && options.toggle && /show|hide/.test(option)) options.toggle = false
-      if (!plugin) {
-          plugin = plugins.instantiate(this,'bs3.modal',options);
-      }
-      if (typeof option == 'string') {
-        plugin[option](_relatedTarget);
-      } else if (options.show) {
-        plugin.show(_relatedTarget);
-      }
-    });
-  };
+  plugins.register(Modal,"modal",function(options,_relatedTarget){
+      //this -> plugin instance
+      if (typeof options == 'string') {
+        this[options](_relatedTarget);
+      } else if (this.options.show) {
+        this.show(_relatedTarget);
+      } 
+  });
 
   return Modal;
 
@@ -11356,25 +11310,9 @@ define('skylark-bootstrap3/tooltip',[
   return $.fn.tooltip;
   */
 
-  plugins.register(Tooltip);
-
-  $.fn.tooltip = function(option) {
-    return this.each(function () {
-      var $this   = $(this)
-      var plugin    = plugins.instantiate(this,'bs3.tooltip',"instance");
-      var options = typeof option == 'object' && option
-
-      if (!plugin && /destroy|hide/.test(option)) return
- 
-      if (!plugin) {
-          plugin = plugins.instantiate(this,'bs3.tooltip',options);
-      }
-      if (typeof option == 'string') plugin[option]()
-    });
-  };
+  plugins.register(Tooltip,"tooltip");
 
   return Tooltip;
-
 });
 
 define('skylark-bootstrap3/popover',[
@@ -11496,22 +11434,7 @@ define('skylark-bootstrap3/popover',[
   return $.fn.popover;
   */
 
-  plugins.register(Popover);
-
-  $.fn.popover = function(option) {
-    return this.each(function () {
-      var $this   = $(this)
-      var plugin    = plugins.instantiate(this,'bs3.popover',"instance");
-      var options = typeof option == 'object' && option
-
-      if (!plugin && /destroy|hide/.test(option)) return
- 
-      if (!plugin) {
-          plugin = plugins.instantiate(this,'bs3.popover',options);
-      }
-      if (typeof option == 'string') plugin[option]()
-    });
-  };
+  plugins.register(Popover,"popover");
 
   return Popover;
 
@@ -11697,17 +11620,7 @@ define('skylark-bootstrap3/scrollspy',[
   return $.fn.scrollspy;
   */
 
-  plugins.register(ScrollSpy);
-
-  $.fn.scrollspy = function(options) {
-    return this.each(function () {
-      var options = typeof option == 'object' && option
-      var  plugin = plugins.instantiate(this, "bs3.scrollspy",options);
-      if (typeof option == 'string') {
-        plugin[option]()
-      }
-    });
-  };
+  plugins.register(ScrollSpy,"scrollspy");
 
   return ScrollSpy;
 
@@ -11882,20 +11795,9 @@ define('skylark-bootstrap3/tab',[
   return $.fn.tab;
   */
 
-  plugins.register(Tab);
-
-  $.fn.tab = function(options) {
-    return this.each(function () {
-      var options = typeof option == 'object' && option
-      var  plugin = plugins.instantiate(this, "bs3.tab",options);
-      if (typeof option == 'string') {
-        plugin[option]()
-      }
-    });
-  };
+  plugins.register(Tab,"tab");
 
   return Tab;
-
 });
 
 define('skylark-bootstrap3/main',[

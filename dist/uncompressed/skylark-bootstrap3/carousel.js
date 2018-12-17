@@ -28,15 +28,8 @@ define([
 
         pluginName: "bs3.carousel",
 
-        options : {
-            interval: 5000,
-            pause: 'hover',
-            wrap: true,
-            keyboard: true
-
-        },
-
         _construct: function(element, options) {
+            options = langx.mixin({}, Carousel.DEFAULTS, $(element).data(), options);
             //this.options = options
             this.overrided(element,options);
 
@@ -245,27 +238,17 @@ define([
         })
     }
     */
-    plugins.register(Carousel);
-
-    $.fn.carousel = function(option) {
-        return this.each(function () {
-            var $this = $(this)
-            var plugin = plugins.instantiate(this,'bs3.carousel',"instance");
-            var options = langx.mixin({}, Carousel.DEFAULTS, $this.data(), typeof option == 'object' && option)
-            var action = typeof option == 'string' ? option : options.slide
-
-            if (!plugin) {
-                plugin = plugins.instantiate(this,'bs3.carousel',options);
-            }
-            if (typeof option == 'number') {
-                plugin.to(option);
-            } else if (action) {
-                plugin[action]()
-            } else if (options.interval) {
-                plugin.pause().cycle();
-            }
-        });
-    };
+    plugins.register(Carousel,"carousel",function(options){
+        //this -> plugin instance
+        var action = typeof options == 'string' ? options : options.slide
+        if (typeof options == 'number') {
+            this.to(options);
+        } else if (action) {
+            this[action]()
+        } else if (options.interval) {
+            this.pause().cycle();
+        }        
+    });
 
     return Carousel;
 

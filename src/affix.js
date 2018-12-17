@@ -163,17 +163,7 @@ define([
   return $.fn.affix;
   */
 
-  plugins.register(Affix);
-
-  $.fn.affix = function(option) {
-    return this.each(function () {
-      var options = typeof option == 'object' && option
-      var  plugin = plugins.instantiate(this, "bs3.affix",options);
-      if (typeof option == 'string') {
-        plugin[option]()
-      }
-    });
-  };
+  plugins.register(Affix,"affix");
 
   return Affix;
 });

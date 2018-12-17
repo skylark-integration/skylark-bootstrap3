@@ -117,22 +117,7 @@ define([
   return $.fn.popover;
   */
 
-  plugins.register(Popover);
-
-  $.fn.popover = function(option) {
-    return this.each(function () {
-      var $this   = $(this)
-      var plugin    = plugins.instantiate(this,'bs3.popover',"instance");
-      var options = typeof option == 'object' && option
-
-      if (!plugin && /destroy|hide/.test(option)) return
- 
-      if (!plugin) {
-          plugin = plugins.instantiate(this,'bs3.popover',options);
-      }
-      if (typeof option == 'string') plugin[option]()
-    });
-  };
+  plugins.register(Popover,"popover");
 
   return Popover;
 

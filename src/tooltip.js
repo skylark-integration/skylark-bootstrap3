@@ -538,23 +538,7 @@ define([
   return $.fn.tooltip;
   */
 
-  plugins.register(Tooltip);
-
-  $.fn.tooltip = function(option) {
-    return this.each(function () {
-      var $this   = $(this)
-      var plugin    = plugins.instantiate(this,'bs3.tooltip',"instance");
-      var options = typeof option == 'object' && option
-
-      if (!plugin && /destroy|hide/.test(option)) return
- 
-      if (!plugin) {
-          plugin = plugins.instantiate(this,'bs3.tooltip',options);
-      }
-      if (typeof option == 'string') plugin[option]()
-    });
-  };
+  plugins.register(Tooltip,"tooltip");
 
   return Tooltip;
-
 });

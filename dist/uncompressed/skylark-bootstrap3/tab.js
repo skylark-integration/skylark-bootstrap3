@@ -167,18 +167,7 @@ define([
   return $.fn.tab;
   */
 
-  plugins.register(Tab);
-
-  $.fn.tab = function(options) {
-    return this.each(function () {
-      var options = typeof option == 'object' && option
-      var  plugin = plugins.instantiate(this, "bs3.tab",options);
-      if (typeof option == 'string') {
-        plugin[option]()
-      }
-    });
-  };
+  plugins.register(Tab,"tab");
 
   return Tab;
-
 });

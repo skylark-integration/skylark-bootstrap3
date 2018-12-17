@@ -181,16 +181,7 @@ define([
     .on('click.bs.dropdown.data-api', clearMenus)
     .on('click.bs.dropdown.data-api', '.dropdown form', function (e) { e.stopPropagation() });
 
-  plugins.register(Dropdown);
-
-  $.fn.dropdown = function(options) {
-    return this.each(function () {
-      var  plugin = plugins.instantiate(this, "bs3.dropdown");
-      if (typeof option == 'string') {
-        plugin[option]()
-      }
-    });
-  };
+  plugins.register(Dropdown,"dropdown");
 
   return Dropdown;
 

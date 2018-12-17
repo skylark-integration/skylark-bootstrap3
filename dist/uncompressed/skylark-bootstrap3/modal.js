@@ -28,7 +28,8 @@ define([
     pluginName : "bs3.modal",
 
     _construct : function(element,options) {
-      this.options             = options;
+      options = langx.mixin({}, Modal.DEFAULTS, $(element).data(), options)
+      this.overrided(element,options);
       this.$container               = $(options.container || document.body)
       this.$element            = $(element)
       this.$dialog             = this.$element.find('.modal-dialog')
@@ -346,25 +347,14 @@ define([
   return $.fn.modal;
   */
 
-  plugins.register(Modal);
-
-  $.fn.modal = function(options,_relatedTarget) {
-    return this.each(function () {
-      var $this   = $(this)
-      var plugin    = plugins.instantiate(this,'bs3.modal',"instance");
-      var options = langx.mixin({}, Modal.DEFAULTS, $this.data(), typeof option == 'object' && option)
-
-      if (!plugin && options.toggle && /show|hide/.test(option)) options.toggle = false
-      if (!plugin) {
-          plugin = plugins.instantiate(this,'bs3.modal',options);
-      }
-      if (typeof option == 'string') {
-        plugin[option](_relatedTarget);
-      } else if (options.show) {
-        plugin.show(_relatedTarget);
-      }
-    });
-  };
+  plugins.register(Modal,"modal",function(options,_relatedTarget){
+      //this -> plugin instance
+      if (typeof options == 'string') {
+        this[options](_relatedTarget);
+      } else if (this.options.show) {
+        this.show(_relatedTarget);
+      } 
+  });
 
   return Modal;
 

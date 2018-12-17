@@ -116,17 +116,7 @@ define([
   return $.fn.alert;
   */
 
-  plugins.register(Alert);
-
-  $.fn.alert = function(options) {
-    return this.each(function () {
-      var options = typeof option == 'object' && option
-      var  plugin = plugins.instantiate(this, "bs3.alert",options);
-      if (typeof option == 'string') {
-        plugin[option]()
-      }
-    });
-  };
+  plugins.register(Alert,"alert");
 
   return Alert;
 

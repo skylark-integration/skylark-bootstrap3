@@ -178,17 +178,7 @@ define([
   return $.fn.scrollspy;
   */
 
-  plugins.register(ScrollSpy);
-
-  $.fn.scrollspy = function(options) {
-    return this.each(function () {
-      var options = typeof option == 'object' && option
-      var  plugin = plugins.instantiate(this, "bs3.scrollspy",options);
-      if (typeof option == 'string') {
-        plugin[option]()
-      }
-    });
-  };
+  plugins.register(ScrollSpy,"scrollspy");
 
   return ScrollSpy;
 

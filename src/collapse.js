@@ -31,12 +31,8 @@ define([
 
     pluginName : "bs3.collapse",
 
-    options : {
-      toggle: true
-    },
-
     _construct : function(element,options) {
-      //this.options       = langx.mixin({}, Collapse.DEFAULTS, options)
+      options = langx.mixin({}, Collapse.DEFAULTS, $(element).data(), options)
       this.overrided(element,options);
 
       this.$element      = $(element)
@@ -223,21 +219,7 @@ define([
   }
   */
 
-  plugins.register(Collapse);
-
-  $.fn.collapse = function(option) {
-    return this.each(function () {
-      var $this   = $(this)
-      var plugin    = plugins.instantiate(this,'bs3.collapse',"instance");
-      var options = langx.mixin({}, Collapse.DEFAULTS, $this.data(), typeof option == 'object' && option)
-
-      if (!plugin && options.toggle && /show|hide/.test(option)) options.toggle = false
-      if (!plugin) {
-          plugin = plugins.instantiate(this,'bs3.collapse',options);
-      }
-      if (typeof option == 'string') plugin[option]()
-    });
-  };
+  plugins.register(Collapse,"collapse");
 
   return Collapse;
 
