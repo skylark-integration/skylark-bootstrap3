@@ -73,7 +73,7 @@ define([
 
       if (actives && actives.length) {
         //Plugin.call(actives, 'hide')
-        actives.collapse().hide();
+        actives.collapse("hide");
         activesData || actives.data('bs.collapse', null)
       }
 
