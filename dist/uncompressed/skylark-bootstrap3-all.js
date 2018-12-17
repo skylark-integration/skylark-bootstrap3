@@ -7546,7 +7546,7 @@ define('skylark-utils-dom/fx',[
         });
 
         return this;
-    };
+    }
 
     /*   
      * Hide an element with a sliding motion.
@@ -7608,7 +7608,7 @@ define('skylark-utils-dom/fx',[
             });
         }
         return this;
-    };
+    }
 
 
     /*   
@@ -7628,8 +7628,22 @@ define('skylark-utils-dom/fx',[
             slideUp(elm, duration, callback);
         }
         return this;
-    };
+    }
 
+    function emulateTransitionEnd(elm,duration) {
+        var called = false;
+        eventer.one('transitionEnd', function () { 
+            called = true;
+        })
+        var callback = function () { 
+            if (!called) {
+                eventer.trigger(el,browser.support.transition.end) 
+            }
+        };
+        setTimeout(callback, duration);
+        
+        return this;
+    } 
 
     function fx() {
         return fx;
@@ -7644,19 +7658,20 @@ define('skylark-utils-dom/fx',[
             slow: 600
         },
 
-        animate: animate,
-        fadeIn: fadeIn,
-        fadeOut: fadeOut,
-        fadeTo: fadeTo,
-        fadeToggle: fadeToggle,
-        hide: hide,
-        scrollToTop: scrollToTop,
+        animate,
+        emulateTransitionEnd,
+        fadeIn,
+        fadeOut,
+        fadeTo,
+        fadeToggle,
+        hide,
+        scrollToTop,
 
-        slideDown: slideDown,
-        slideToggle: slideToggle,
-        slideUp: slideUp,
-        show: show,
-        toggle: toggle
+        slideDown,
+        slideToggle,
+        slideUp,
+        show,
+        toggle
     });
 
     return dom.fx = fx;
@@ -8102,8 +8117,6 @@ define('skylark-utils-dom/query',[
                 return ret;
             },
             
-            show: wrapper_every_act(fx.show, fx),
-
             replaceWith: function(newContent) {
                 return this.before(newContent).remove();
             },
@@ -8445,6 +8458,7 @@ define('skylark-utils-dom/query',[
         };
 
         $.fn.animate = wrapper_every_act(fx.animate, fx);
+        $.fn.emulateTransitionEnd = wrapper_every_act(fx.emulateTransitionEnd, fx);
 
         $.fn.show = wrapper_every_act(fx.show, fx);
         $.fn.hide = wrapper_every_act(fx.hide, fx);
@@ -9723,16 +9737,6 @@ define('skylark-bootstrap3/transition',[
  * ======================================================================== */
 
   'use strict';
-
-  // http://blog.alexmaccaw.com/css-transitions
-  $.fn.emulateTransitionEnd = function (duration) {
-    var called = false
-    var $el = this
-    $(this).one('transitionEnd', function () { called = true })
-    var callback = function () { if (!called) $($el).trigger(browser.support.transition.end) }
-    setTimeout(callback, duration)
-    return this
-  } 
 
   eventer.special.bsTransitionEnd = eventer.special.transitionEnd;
 });

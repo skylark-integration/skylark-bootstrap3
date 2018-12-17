@@ -629,16 +629,6 @@ define('skylark-bootstrap3/transition',[
 
   'use strict';
 
-  // http://blog.alexmaccaw.com/css-transitions
-  $.fn.emulateTransitionEnd = function (duration) {
-    var called = false
-    var $el = this
-    $(this).one('transitionEnd', function () { called = true })
-    var callback = function () { if (!called) $($el).trigger(browser.support.transition.end) }
-    setTimeout(callback, duration)
-    return this
-  } 
-
   eventer.special.bsTransitionEnd = eventer.special.transitionEnd;
 });
 
