@@ -13,7 +13,7 @@ define([
 	"./tab",
 	"./tooltip",
 	"./transition"
-],function(langx,$){
+],function(langx,$,Affix,Alert,Button,Carousel,Collapse,Dropdown,Modal,Popover,ScrollSpy,Tab,Tooltip){
   function getTargetFromTrigger($trigger) {
     var href
     var target = $trigger.attr('data-target')
@@ -91,7 +91,7 @@ define([
  
 			// COLLAPSE DATA-API
 			// =================
-  		    $(document).on('click.bs3.collapse.data-api', '[data-target][data-toggle="collapse"]', function (e) {
+ 		    $(document).on('click.bs3.collapse.data-api', '[data-target][data-toggle="collapse"]', function (e) {
 			    var $this   = $(this)
 
 			    if (!$this.attr('data-target')) e.preventDefault()
@@ -105,10 +105,12 @@ define([
 
 		    // Dropdown DATA-API
 		    // =================
-			$('[data-ride="dropdown"]').each(function () {
-				$this = $(this);
-				$this.dropdown($this.data());
-			});
+       $(document)
+        .on('click.bs.dropdown.data-api', '.dropdown form', function (e) { e.stopPropagation() })
+        .on('click.bs.dropdown.data-api', '[data-toggle="dropdown"]', Dropdown.prototype.toggle)
+        .on('keydown.bs.dropdown.data-api', '[data-toggle="dropdown"]', Dropdown.prototype.keydown)
+        .on('keydown.bs.dropdown.data-api', '.dropdown-menu', Dropdown.prototype.keydown);
+
 
 			// MODAL DATA-API
 			// ==============
@@ -116,7 +118,7 @@ define([
 				var $this   = $(this)
 				var href    = $this.attr('href')
 				var $target = $($this.attr('data-target') || (href && href.replace(/.*(?=#[^\s]+$)/, ''))) // strip for ie7
-				var option  = $target.data('bse.modal') ? 'toggle' : langx.mixin({ remote: !/#/.test(href) && href }, $target.data(), $this.data())
+				var option  = $target.data('bs3.modal') ? 'toggle' : langx.mixin({ remote: !/#/.test(href) && href }, $target.data(), $this.data())
 
 				if ($this.is('a')) e.preventDefault()
 

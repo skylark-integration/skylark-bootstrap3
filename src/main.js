@@ -11,7 +11,8 @@ define([
     "./scrollspy",
     "./tab",
     "./tooltip",
-    "./transition"
+    "./transition",
+    "./loadedInit"
 ], function($) {
     return $;
 });
