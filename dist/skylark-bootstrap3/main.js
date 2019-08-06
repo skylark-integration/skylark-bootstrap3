@@ -5,5 +5,5 @@
  * @link https://github.com/skylarkui/skylark-bootstrap3/
  * @license MIT
  */
-define(["skylark-utils-dom/query","./affix","./alert","./button","./carousel","./collapse","./dropdown","./modal","./popover","./scrollspy","./tab","./tooltip","./transition","./loadedInit"],function(o){return o});
+define(["skylark-utils-dom/query","./affix","./alert","./button","./carousel","./collapse","./dropdown","./modal","./popover","./scrollspy","./tab","./taginput","./tooltip","./transition","./loadedInit"],function(o){return o});
 //# sourceMappingURL=sourcemaps/main.js.map

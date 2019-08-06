@@ -11,16 +11,17 @@ define([
 	"./popover",
 	"./scrollspy",
 	"./tab",
+	"./taginput",
 	"./tooltip",
 	"./transition"
 ],function(langx,$,Affix,Alert,Button,Carousel,Collapse,Dropdown,Modal,Popover,ScrollSpy,Tab,Tooltip){
-  function getTargetFromTrigger($trigger) {
-    var href
-    var target = $trigger.attr('data-target')
-      || (href = $trigger.attr('href')) && href.replace(/.*(?=#[^\s]+$)/, '') // strip for ie7
+	function getTargetFromTrigger($trigger) {
+		var href
+		var target = $trigger.attr('data-target')
+		  || (href = $trigger.attr('href')) && href.replace(/.*(?=#[^\s]+$)/, '') // strip for ie7
 
-    return $(target)
-  }
+		return $(target);
+	}
 
 	var init = function() {
     
@@ -103,13 +104,13 @@ define([
 			    $target.collapse(option);
 		    });
 
-		    // Dropdown DATA-API
-		    // =================
-       $(document)
-        .on('click.bs.dropdown.data-api', '.dropdown form', function (e) { e.stopPropagation() })
-        .on('click.bs.dropdown.data-api', '[data-toggle="dropdown"]', Dropdown.prototype.toggle)
-        .on('keydown.bs.dropdown.data-api', '[data-toggle="dropdown"]', Dropdown.prototype.keydown)
-        .on('keydown.bs.dropdown.data-api', '.dropdown-menu', Dropdown.prototype.keydown);
+			    // Dropdown DATA-API
+			    // =================
+	       	$(document)
+	        .on('click.bs.dropdown.data-api', '.dropdown form', function (e) { e.stopPropagation() })
+	        .on('click.bs.dropdown.data-api', '[data-toggle="dropdown"]', Dropdown.prototype.toggle)
+	        .on('keydown.bs.dropdown.data-api', '[data-toggle="dropdown"]', Dropdown.prototype.keydown)
+	        .on('keydown.bs.dropdown.data-api', '.dropdown-menu', Dropdown.prototype.keydown);
 
 
 			// MODAL DATA-API
@@ -131,8 +132,8 @@ define([
 				$target.modal(option, this);
 			});
 
- 			// SCROLLSPY DATA-API
- 			// ==================
+				// SCROLLSPY DATA-API
+				// ==================
 			$('[data-spy="scroll"]').each(function () {
 				var $spy = $(this)
 				$spy.scrollspy($spy.data());
@@ -146,11 +147,18 @@ define([
 			    $(this).tab('show');
 			};
 
-  			$(document)
-    			.on('click.bs3.tab.data-api', '[data-toggle="tab"]', clickHandler)
-    			.on('click.bs3.tab.data-api', '[data-toggle="pill"]', clickHandler);
+			$(document)
+			.on('click.bs3.tab.data-api', '[data-toggle="tab"]', clickHandler)
+			.on('click.bs3.tab.data-api', '[data-toggle="pill"]', clickHandler);
 
-  		})
+		  	/**
+		   	* Initialize tagsinput behaviour on inputs and selects which have
+		   	* data-role=tagsinput
+		   	*/
+
+		    $("input[data-role=tagsinput], select[multiple][data-role=tagsinput]").tagsinput();
+
+  		});
 	};
 
 	return init;

@@ -10,6 +10,7 @@ define([
     "./popover",
     "./scrollspy",
     "./tab",
+    "./taginput",
     "./tooltip",
     "./transition",
     "./loadedInit"
