@@ -143,7 +143,7 @@ define([
         return;
 
       // raise beforeItemAdd arg
-      var beforeItemAddEvent = langx.Event('beforeItemAdd', { item: item, cancel: false, options: options});
+      var beforeItemAddEvent = eventer.create('beforeItemAdd', { item: item, cancel: false, options: options});
       self.$element.trigger(beforeItemAddEvent);
       if (beforeItemAddEvent.cancel)
         return;
@@ -185,9 +185,9 @@ define([
       }
 
       if (this.isInit) {
-        self.$element.trigger(langx.Event('itemAddedOnInit', { item: item, options: options }));
+        self.$element.trigger(eventer.create('itemAddedOnInit', { item: item, options: options }));
       } else {
-        self.$element.trigger(langx.Event('itemAdded', { item: item, options: options }));
+        self.$element.trigger(eventer.create('itemAdded', { item: item, options: options }));
       }
     },
 
