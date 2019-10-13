@@ -87,13 +87,13 @@
 })(function(define,require) {
 
 define('skylark-bootstrap3/bs3',[
-  "skylark-utils-dom/skylark",
+  "skylark-langx/skylark",
   "skylark-langx/langx",
-  "skylark-utils-dom/browser",
-  "skylark-utils-dom/eventer",
-  "skylark-utils-dom/noder",
-  "skylark-utils-dom/geom",
-  "skylark-utils-dom/query"
+  "skylark-domx-browser",
+  "skylark-domx-eventer",
+  "skylark-domx-noder",
+  "skylark-domx-geom",
+  "skylark-domx-query"
 ],function(skylark,langx,browser,eventer,noder,geom,$){
 	var ui = skylark.ui = skylark.ui || {}, 
 		bs3 = ui.bs3 = {};
@@ -163,12 +163,12 @@ define('skylark-bootstrap3/bs3',[
 
 define('skylark-bootstrap3/affix',[
   "skylark-langx/langx",
-  "skylark-utils-dom/browser",
-  "skylark-utils-dom/eventer",
-  "skylark-utils-dom/noder",
-  "skylark-utils-dom/geom",
-  "skylark-utils-dom/query",
-  "skylark-utils-dom/plugins",
+  "skylark-domx-browser",
+  "skylark-domx-eventer",
+  "skylark-domx-noder",
+  "skylark-domx-geom",
+  "skylark-domx-query",
+  "skylark-domx-plugins",
   "./bs3"
 ],function(langx,browser,eventer,noder,geom,$,plugins,bs3){
 
@@ -333,12 +333,12 @@ define('skylark-bootstrap3/affix',[
 
 define('skylark-bootstrap3/alert',[
   "skylark-langx/langx",
-  "skylark-utils-dom/browser",
-  "skylark-utils-dom/eventer",
-  "skylark-utils-dom/noder",
-  "skylark-utils-dom/geom",
-  "skylark-utils-dom/query",
-  "skylark-utils-dom/plugins",
+  "skylark-domx-browser",
+  "skylark-domx-eventer",
+  "skylark-domx-noder",
+  "skylark-domx-geom",
+  "skylark-domx-query",
+  "skylark-domx-plugins",
   "./bs3"
 ],function(langx,browser,eventer,noder,geom,$,plugins,bs3){
 
@@ -457,12 +457,12 @@ define('skylark-bootstrap3/alert',[
 
 define('skylark-bootstrap3/button',[
   "skylark-langx/langx",
-  "skylark-utils-dom/browser",
-  "skylark-utils-dom/eventer",
-  "skylark-utils-dom/noder",
-  "skylark-utils-dom/geom",
-  "skylark-utils-dom/query",
-  "skylark-utils-dom/plugins",
+  "skylark-domx-browser",
+  "skylark-domx-eventer",
+  "skylark-domx-noder",
+  "skylark-domx-geom",
+  "skylark-domx-query",
+  "skylark-domx-plugins",
   "./bs3"
 ],function(langx,browser,eventer,noder,geom,$,plugins,bs3){
 
@@ -617,11 +617,11 @@ define('skylark-bootstrap3/button',[
 
 define('skylark-bootstrap3/transition',[
   "skylark-langx/langx",
-  "skylark-utils-dom/browser",
-  "skylark-utils-dom/eventer",
-  "skylark-utils-dom/noder",
-  "skylark-utils-dom/geom",
-  "skylark-utils-dom/query",
+  "skylark-domx-browser",
+  "skylark-domx-eventer",
+  "skylark-domx-noder",
+  "skylark-domx-geom",
+  "skylark-domx-query",
   "./bs3"
 ],function(langx,browser,eventer,noder,geom,$,bs3){
 
@@ -640,12 +640,12 @@ define('skylark-bootstrap3/transition',[
 
 define('skylark-bootstrap3/carousel',[
     "skylark-langx/langx",
-    "skylark-utils-dom/browser",
-    "skylark-utils-dom/eventer",
-    "skylark-utils-dom/noder",
-    "skylark-utils-dom/geom",
-    "skylark-utils-dom/query",
-    "skylark-utils-dom/plugins",
+    "skylark-domx-browser",
+    "skylark-domx-eventer",
+    "skylark-domx-noder",
+    "skylark-domx-geom",
+    "skylark-domx-query",
+    "skylark-domx-plugins",
     "./bs3",
     "./transition"
 ], function(langx, browser, eventer, noder, geom, $, plugins, bs3) {
@@ -922,12 +922,12 @@ define('skylark-bootstrap3/carousel',[
 });
 define('skylark-bootstrap3/collapse',[
     "skylark-langx/langx",
-    "skylark-utils-dom/browser",
-    "skylark-utils-dom/eventer",
-    "skylark-utils-dom/noder",
-    "skylark-utils-dom/geom",
-    "skylark-utils-dom/query",
-    "skylark-utils-dom/plugins",
+    "skylark-domx-browser",
+    "skylark-domx-eventer",
+    "skylark-domx-noder",
+    "skylark-domx-geom",
+    "skylark-domx-query",
+    "skylark-domx-plugins",
     "./bs3",
     "./transition"
 ], function(langx, browser, eventer, noder, geom, $, plugins, bs3) {
@@ -1149,12 +1149,12 @@ define('skylark-bootstrap3/collapse',[
 
 define('skylark-bootstrap3/dropdown',[
   "skylark-langx/langx",
-  "skylark-utils-dom/browser",
-  "skylark-utils-dom/eventer",
-  "skylark-utils-dom/noder",
-  "skylark-utils-dom/geom",
-  "skylark-utils-dom/query",
-  "skylark-utils-dom/plugins",
+  "skylark-domx-browser",
+  "skylark-domx-eventer",
+  "skylark-domx-noder",
+  "skylark-domx-geom",
+  "skylark-domx-query",
+  "skylark-domx-plugins",
   "./bs3"
 ],function(langx,browser,eventer,noder,geom,$,plugins,bs3){
 
@@ -1338,12 +1338,12 @@ define('skylark-bootstrap3/dropdown',[
 
 define('skylark-bootstrap3/modal',[
   "skylark-langx/langx",
-  "skylark-utils-dom/browser",
-  "skylark-utils-dom/eventer",
-  "skylark-utils-dom/noder",
-  "skylark-utils-dom/geom",
-  "skylark-utils-dom/query",
-  "skylark-utils-dom/plugins",
+  "skylark-domx-browser",
+  "skylark-domx-eventer",
+  "skylark-domx-noder",
+  "skylark-domx-geom",
+  "skylark-domx-query",
+  "skylark-domx-plugins",
   "./bs3"
 ],function(langx,browser,eventer,noder,geom,$,plugins,bs3){
 
@@ -1700,12 +1700,12 @@ define('skylark-bootstrap3/modal',[
 
 define('skylark-bootstrap3/tooltip',[
   "skylark-langx/langx",
-  "skylark-utils-dom/browser",
-  "skylark-utils-dom/eventer",
-  "skylark-utils-dom/noder",
-  "skylark-utils-dom/geom",
-  "skylark-utils-dom/query",
-  "skylark-utils-dom/plugins",
+  "skylark-domx-browser",
+  "skylark-domx-eventer",
+  "skylark-domx-noder",
+  "skylark-domx-geom",
+  "skylark-domx-query",
+  "skylark-domx-plugins",
   "./bs3"
 ],function(langx,browser,eventer,noder,geom,$,plugins,bs3){
 
@@ -2244,11 +2244,11 @@ define('skylark-bootstrap3/tooltip',[
 });
 
 define('skylark-bootstrap3/popover',[
-  "skylark-utils-dom/browser",
+  "skylark-domx-browser",
   "skylark-langx/langx",
-  "skylark-utils-dom/eventer",
-  "skylark-utils-dom/query",
-  "skylark-utils-dom/plugins",
+  "skylark-domx-eventer",
+  "skylark-domx-query",
+  "skylark-domx-plugins",
   "./bs3",
   "./tooltip" 
 ],function(browser,langx,eventer,$,plugins,bs3,Tooltip){
@@ -2370,12 +2370,12 @@ define('skylark-bootstrap3/popover',[
 
 define('skylark-bootstrap3/scrollspy',[
   "skylark-langx/langx",
-  "skylark-utils-dom/browser",
-  "skylark-utils-dom/eventer",
-  "skylark-utils-dom/noder",
-  "skylark-utils-dom/geom",
-  "skylark-utils-dom/query",
-  "skylark-utils-dom/plugins",
+  "skylark-domx-browser",
+  "skylark-domx-eventer",
+  "skylark-domx-noder",
+  "skylark-domx-geom",
+  "skylark-domx-query",
+  "skylark-domx-plugins",
   "./bs3"
 ],function(langx,browser,eventer,noder,geom,$,plugins,bs3){
 
@@ -2556,12 +2556,12 @@ define('skylark-bootstrap3/scrollspy',[
 
 define('skylark-bootstrap3/tab',[
   "skylark-langx/langx",
-  "skylark-utils-dom/browser",
-  "skylark-utils-dom/eventer",
-  "skylark-utils-dom/noder",
-  "skylark-utils-dom/geom",
-  "skylark-utils-dom/query",
-  "skylark-utils-dom/plugins",
+  "skylark-domx-browser",
+  "skylark-domx-eventer",
+  "skylark-domx-noder",
+  "skylark-domx-geom",
+  "skylark-domx-query",
+  "skylark-domx-plugins",
   "./bs3"
 ],function(langx,browser,eventer,noder,geom,$,plugins,bs3){
 
@@ -2730,12 +2730,12 @@ define('skylark-bootstrap3/tab',[
 
 define('skylark-bootstrap3/taginput',[
   "skylark-langx/langx",
-  "skylark-utils-dom/browser",
-  "skylark-utils-dom/eventer",
-  "skylark-utils-dom/noder",
-  "skylark-utils-dom/geom",
-  "skylark-utils-dom/query",
-  "skylark-utils-dom/plugins",
+  "skylark-domx-browser",
+  "skylark-domx-eventer",
+  "skylark-domx-noder",
+  "skylark-domx-geom",
+  "skylark-domx-query",
+  "skylark-domx-plugins",
   "./bs3"
 ],function(langx,browser,eventer,noder,geom,$,plugins,bs3){
 
@@ -3427,7 +3427,7 @@ define('skylark-bootstrap3/taginput',[
 });
 define('skylark-bootstrap3/loadedInit',[
  	"skylark-langx/langx",
- 	"skylark-utils-dom/query",
+ 	"skylark-domx-query",
 	"./affix",
 	"./alert",
 	"./button",
@@ -3592,7 +3592,7 @@ define('skylark-bootstrap3/loadedInit',[
 });
 
 define('skylark-bootstrap3/main',[
-    "skylark-utils-dom/query",
+    "skylark-domx-query",
     "./affix",
     "./alert",
     "./button",

@@ -5,5 +5,5 @@
  * @link https://github.com/skylarkui/skylark-bootstrap3/
  * @license MIT
  */
-define(["skylark-langx/langx","skylark-utils-dom/browser","skylark-utils-dom/eventer","skylark-utils-dom/noder","skylark-utils-dom/geom","skylark-utils-dom/query","./bs3"],function(s,l,i,r,n,a,e){"use strict";i.special.bsTransitionEnd=i.special.transitionEnd});
+define(["skylark-langx/langx","skylark-domx-browser","skylark-domx-eventer","skylark-domx-noder","skylark-domx-geom","skylark-domx-query","./bs3"],function(s,r,n,a,e,k,o){"use strict";n.special.bsTransitionEnd=n.special.transitionEnd});
 //# sourceMappingURL=sourcemaps/transition.js.map

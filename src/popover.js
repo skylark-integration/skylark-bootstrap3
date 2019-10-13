@@ -1,9 +1,9 @@
 define([
-  "skylark-utils-dom/browser",
+  "skylark-domx-browser",
   "skylark-langx/langx",
-  "skylark-utils-dom/eventer",
-  "skylark-utils-dom/query",
-  "skylark-utils-dom/plugins",
+  "skylark-domx-eventer",
+  "skylark-domx-query",
+  "skylark-domx-plugins",
   "./bs3",
   "./tooltip" 
 ],function(browser,langx,eventer,$,plugins,bs3,Tooltip){
