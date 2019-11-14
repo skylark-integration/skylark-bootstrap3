@@ -147,11 +147,12 @@ define([
   return $.fn.button;
   */
 
-  plugins.register(Button,"button",function(plugin,options){
+  plugins.register(Button,"button",function(options){
+      //this -> plugin instance
       if (options == 'toggle') {
-        plugin.toggle();
+        this.toggle();
       } else if (options) {
-        plugin.setState(options);
+        this.setState(options);
       }    
   });
 

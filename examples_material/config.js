@@ -189,8 +189,31 @@ requirejs.config({
 //           location : "../../../domx/skylark-domx-files/src",
             main: 'main'
          },
+         {
+            name: 'skylark-bootstrap3',
+            location : "../node_modules/skylark-bootstrap3/dist/uncompressed/skylark-bootstrap3",
+            main: 'main'
+          },
+         {
+           name : "skylark-widgets-base",
+           location : "../node_modules/skylark-widgets-base/dist/uncompressed/skylark-widgets-base",
+//           location : "../../skylark-widgets-base/src",
+           main: 'main'
+         },          
+          {
+            name: 'skylark-widgets-swt',
+            location : "../node_modules/skylark-widgets-swt/dist/uncompressed/skylark-widgets-swt",
+//            location : "../../skylark-widgets-swt/src",
+            main: 'main'
+          },
+          {
+            name: 'skylark-widgets-uploads',
+            location : "../src",
+            main: 'main'
+          },             
           {
             name: 'skylark-bootstrap3',
+//            location: '../dist/js/uncompressed/skylark-ui-swt',
             location: '../src',
             main: 'main'
           }       
