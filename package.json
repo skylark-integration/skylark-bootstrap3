@@ -19,6 +19,8 @@
   "bugs": {
     "url": "https://github.com/skylarkui/skylark-bootstrap3/issues"
   },
+  "files": ["examples/", "dist/", "src/","themes/"],
+  
   "license": "MIT",
   "dependencies": {
     "skylark-domx-browser": "git+https://github.com/skylark-domx/skylark-domx-browser.git#master",
