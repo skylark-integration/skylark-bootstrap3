@@ -75,7 +75,7 @@
   factory(define,require);
 
   if (!isAmd) {
-    var skylarkjs = require("skylark-langx/skylark");
+    var skylarkjs = require("skylark-langx-ns");
 
     if (isCmd) {
       module.exports = skylarkjs;
@@ -162,15 +162,10 @@ define('skylark-bootstrap3/bs3',[
 });
 
 define('skylark-bootstrap3/affix',[
-  "skylark-langx/langx",
-  "skylark-domx-browser",
-  "skylark-domx-eventer",
-  "skylark-domx-noder",
-  "skylark-domx-geom",
-  "skylark-domx-query",
   "skylark-domx-plugins",
+  "skylark-domx-spy/Affix",
   "./bs3"
-],function(langx,browser,eventer,noder,geom,$,plugins,bs3){
+],function(plugins,_Affix,bs3){
 
 
 /* ========================================================================
@@ -186,112 +181,14 @@ define('skylark-bootstrap3/affix',[
   // AFFIX CLASS DEFINITION
   // ======================
 
-  var Affix = bs3.Affix = plugins.Plugin.inherit({
+  var Affix = bs3.Affix = _Affix.inherit({
         klassName: "Affix",
 
-        pluginName : "bs3.affix",
-
-        _construct : function(element,options) {
-          this.options = langx.mixin({}, Affix.DEFAULTS, options)
-
-          this.$target = $(this.options.target)
-            .on('scroll.bs.affix.data-api', langx.proxy(this.checkPosition, this))
-            .on('click.bs.affix.data-api',  langx.proxy(this.checkPositionWithEventLoop, this))
-
-          this.$element     = $(element)
-          this.affixed      = null;
-          this.unpin        = null;
-          this.pinnedOffset = null;
-
-          this.checkPosition();
-        },
-
-        getState : function (scrollHeight, height, offsetTop, offsetBottom) {
-          var scrollTop    = this.$target.scrollTop()
-          var position     = this.$element.offset()
-          var targetHeight = this.$target.height()
-
-          if (offsetTop != null && this.affixed == 'top') return scrollTop < offsetTop ? 'top' : false
-
-          if (this.affixed == 'bottom') {
-            if (offsetTop != null) return (scrollTop + this.unpin <= position.top) ? false : 'bottom'
-            return (scrollTop + targetHeight <= scrollHeight - offsetBottom) ? false : 'bottom'
-          }
-
-          var initializing   = this.affixed == null
-          var colliderTop    = initializing ? scrollTop : position.top
-          var colliderHeight = initializing ? targetHeight : height
-
-          if (offsetTop != null && scrollTop <= offsetTop) return 'top'
-          if (offsetBottom != null && (colliderTop + colliderHeight >= scrollHeight - offsetBottom)) return 'bottom'
-
-          return false
-        },
-
-        getPinnedOffset : function () {
-          if (this.pinnedOffset) return this.pinnedOffset
-          this.$element.removeClass(Affix.RESET).addClass('affix')
-          var scrollTop = this.$target.scrollTop()
-          var position  = this.$element.offset()
-          return (this.pinnedOffset = position.top - scrollTop)
-        },
-
-        checkPositionWithEventLoop : function () {
-          setTimeout(langx.proxy(this.checkPosition, this), 1)
-        },
-
-        checkPosition : function () {
-          if (!this.$element.is(':visible')) return
-
-          var height       = this.$element.height()
-          var offset       = this.options.offset
-          var offsetTop    = offset.top
-          var offsetBottom = offset.bottom
-          var scrollHeight = Math.max($(document).height(), $(document.body).height())
-
-          if (typeof offset != 'object')         offsetBottom = offsetTop = offset
-          if (typeof offsetTop == 'function')    offsetTop    = offset.top(this.$element)
-          if (typeof offsetBottom == 'function') offsetBottom = offset.bottom(this.$element)
-
-          var affix = this.getState(scrollHeight, height, offsetTop, offsetBottom)
-
-          if (this.affixed != affix) {
-            if (this.unpin != null) this.$element.css('top', '')
-
-            var affixType = 'affix' + (affix ? '-' + affix : '')
-            var e         = eventer.create(affixType + '.bs.affix')
-
-            this.$element.trigger(e)
-
-            if (e.isDefaultPrevented()) return
-
-            this.affixed = affix
-            this.unpin = affix == 'bottom' ? this.getPinnedOffset() : null
-
-            this.$element
-              .removeClass(Affix.RESET)
-              .addClass(affixType)
-              .trigger(affixType.replace('affix', 'affixed') + '.bs.affix')
-          }
-
-          if (affix == 'bottom') {
-            this.$element.offset({
-              top: scrollHeight - height - offsetBottom
-            })
-          }
-        }
+        pluginName : "bs3.affix"
   });
 
 
   Affix.VERSION  = '3.3.7'
-
-  Affix.RESET    = 'affix affix-top affix-bottom'
-
-  Affix.DEFAULTS = {
-    offset: 0,
-    target: window
-  }
-
 
   /*
   // AFFIX PLUGIN DEFINITION
@@ -929,9 +826,10 @@ define('skylark-bootstrap3/collapse',[
     "skylark-domx-geom",
     "skylark-domx-query",
     "skylark-domx-plugins",
-    "./bs3",
+    "skylark-domx-panels/Collapse",
+   "./bs3",
     "./transition"
-], function(langx, browser, eventer, noder, geom, $, plugins, bs3) {
+], function(langx, browser, eventer, noder, geom, $, plugins,_Collapse, bs3) {
 
 
 /* ========================================================================
@@ -949,38 +847,34 @@ define('skylark-bootstrap3/collapse',[
   // COLLAPSE PUBLIC CLASS DEFINITION
   // ================================
 
-  var Collapse = bs3.Collapse = plugins.Plugin.inherit({
+  var Collapse = bs3.Collapse = _Collapse.inherit({
     klassName: "Collapse",
 
     pluginName : "bs3.collapse",
 
     _construct : function(element,options) {
-      options = langx.mixin({}, Collapse.DEFAULTS, $(element).data(), options)
-      this.overrided(element,options);
-
-      this.$element      = $(element)
+      options = langx.mixin({}, $(element).data(), options)
       this.$trigger      = $('[data-toggle="collapse"][href="#' + element.id + '"],' +
                              '[data-toggle="collapse"][data-target="#' + element.id + '"]')
-      this.transitioning = null
+      //this.transitioning = null
 
-      if (this.options.parent) {
-        this.$parent = this.getParent()
+      if (options.parent) {
+        this.$parent = this.getParent(options)
       } else {
-        this.addAriaAndCollapsedClass(this.$element, this.$trigger)
+        this.addAriaAndCollapsedClass($(element), this.$trigger)
       }
 
-      if (this.options.toggle) {
-        this.toggle();
-      }
+      this.overrided(element,options);
+      //this.$element      = $(element)
+
+      //if (this.options.toggle) {
+      //  this.toggle();
+      //}
     },
 
-    dimension : function () {
-      var hasWidth = this.$element.hasClass('width')
-      return hasWidth ? 'width' : 'height'
-    },
 
     show : function () {
-      if (this.transitioning || this.$element.hasClass('in')) return
+      //if (this.transitioning || this.$element.hasClass('in')) return
 
       var activesData
       var actives = this.$parent && this.$parent.children('.panel').children('.in, .collapsing')
@@ -990,9 +884,9 @@ define('skylark-bootstrap3/collapse',[
         if (activesData && activesData.transitioning) return
       }
 
-      var startEvent = eventer.create('show.bs.collapse')
-      this.$element.trigger(startEvent)
-      if (startEvent.isDefaultPrevented()) return
+      //var startEvent = eventer.create('show.bs.collapse')
+      //this.$element.trigger(startEvent)
+      //if (startEvent.isDefaultPrevented()) return
 
       if (actives && actives.length) {
         //Plugin.call(actives, 'hide')
@@ -1000,82 +894,83 @@ define('skylark-bootstrap3/collapse',[
         activesData || actives.data('bs.collapse', null)
       }
 
-      var dimension = this.dimension()
+      //var dimension = this.dimension()
 
-      this.$element
-        .removeClass('collapse')
-        .addClass('collapsing')[dimension](0)
-        .attr('aria-expanded', true)
+      //this.$element
+      //  .removeClass('collapse')
+      //  .addClass('collapsing')[dimension](0)
+      //  .attr('aria-expanded', true)
+
+      this.overrided(); //add
 
       this.$trigger
         .removeClass('collapsed')
         .attr('aria-expanded', true)
 
-      this.transitioning = 1
+      //this.transitioning = 1
 
-      var complete = function () {
-        this.$element
-          .removeClass('collapsing')
-          .addClass('collapse in')[dimension]('')
-        this.transitioning = 0
-        this.$element
-          .trigger('shown.bs.collapse')
-      }
+      //var complete = function () {
+      //  this.$element
+      //    .removeClass('collapsing')
+      //    .addClass('collapse in')[dimension]('')
+      //  this.transitioning = 0
+      //  this.$element
+      //    .trigger('shown.bs.collapse')
+      //}
 
-      if (!browser.support.transition) return complete.call(this)
+      //if (!browser.support.transition) return complete.call(this)
 
-      var scrollSize = langx.camelCase(['scroll', dimension].join('-'))
+      //var scrollSize = langx.camelCase(['scroll', dimension].join('-'))
 
-      this.$element
-        .one('transitionEnd', langx.proxy(complete, this))
-        .emulateTransitionEnd(Collapse.TRANSITION_DURATION)[dimension](this.$element[0][scrollSize])
+      //this.$element
+      //  .one('transitionEnd', langx.proxy(complete, this))
+      //  .emulateTransitionEnd(Collapse.TRANSITION_DURATION)[dimension](this.$element[0][scrollSize])
     },
 
     hide : function () {
-      if (this.transitioning || !this.$element.hasClass('in')) return
+      //if (this.transitioning || !this.$element.hasClass('in')) return
 
-      var startEvent = eventer.create('hide.bs.collapse')
-      this.$element.trigger(startEvent)
-      if (startEvent.isDefaultPrevented()) return
+      //var startEvent = eventer.create('hide.bs.collapse')
+      //this.$element.trigger(startEvent)
+      //if (startEvent.isDefaultPrevented()) return
 
-      var dimension = this.dimension()
+      //var dimension = this.dimension()
 
-      this.$element[dimension](this.$element[dimension]())[0].offsetHeight
+      //this.$element[dimension](this.$element[dimension]())[0].offsetHeight
 
-      this.$element
-        .addClass('collapsing')
-        .removeClass('collapse in')
-        .attr('aria-expanded', false)
+      //this.$element
+      //  .addClass('collapsing')
+      //  .removeClass('collapse in')
+      //  .attr('aria-expanded', false)
 
+      this.overrided();
       this.$trigger
         .addClass('collapsed')
         .attr('aria-expanded', false)
 
-      this.transitioning = 1
+      //this.transitioning = 1
 
-      var complete = function () {
-        this.transitioning = 0
-        this.$element
-          .removeClass('collapsing')
-          .addClass('collapse')
-          .trigger('hidden.bs.collapse')
-      }
+      //var complete = function () {
+      //  this.transitioning = 0
+      //  this.$element
+      //    .removeClass('collapsing')
+      //    .addClass('collapse')
+      //    .trigger('hidden.bs.collapse')
+      //}
 
-      if (!browser.support.transition) return complete.call(this)
+      //if (!browser.support.transition) return complete.call(this)
 
-      this.$element
-        [dimension](0)
-        .one('transitionEnd', langx.proxy(complete, this))
-        .emulateTransitionEnd(Collapse.TRANSITION_DURATION)
+      //this.$element
+      //  [dimension](0)
+      //  .one('transitionEnd', langx.proxy(complete, this))
+      //  .emulateTransitionEnd(Collapse.TRANSITION_DURATION)
     },
 
-    toggle : function () {
-      this[this.$element.hasClass('in') ? 'hide' : 'show']()
-    },
 
-    getParent : function () {
-      return $(this.options.parent)
-        .find('[data-toggle="collapse"][data-parent="' + this.options.parent + '"]')
+    getParent : function (options) {
+      options = options || this.options;
+      return $(options.parent)
+        .find('[data-toggle="collapse"][data-parent="' + options.parent + '"]')
         .each(langx.proxy(function (i, element) {
           var $element = $(element)
           this.addAriaAndCollapsedClass(getTargetFromTrigger($element), $element)
@@ -1095,12 +990,6 @@ define('skylark-bootstrap3/collapse',[
   });
 
   Collapse.VERSION  = '3.3.7'
-
-  Collapse.TRANSITION_DURATION = 350
-
-  Collapse.DEFAULTS = {
-    toggle: true
-  }
 
 
   function getTargetFromTrigger($trigger) {
@@ -1156,8 +1045,9 @@ define('skylark-bootstrap3/dropdown',[
   "skylark-domx-geom",
   "skylark-domx-query",
   "skylark-domx-plugins",
+  "skylark-domx-popups/Dropdown",
   "./bs3"
-],function(langx,browser,eventer,noder,geom,$,plugins,bs3){
+],function(langx,browser,eventer,noder,geom,$,plugins,_Dropdown,bs3){
 
 /* ========================================================================
  * Bootstrap: dropdown.js v3.3.7
@@ -1174,122 +1064,15 @@ define('skylark-bootstrap3/dropdown',[
   var backdrop = '.dropdown-backdrop';
   var toggle   = '[data-toggle="dropdown"]';
 
-  var Dropdown = bs3.Dropdown = plugins.Plugin.inherit({
+  var Dropdown = bs3.Dropdown = _Dropdown.inherit({
     klassName: "Dropdown",
 
     pluginName : "bs3.dropdown",
 
-    _construct : function(element,options) {
-      var $el = this.$element = $(element);
-      $el.on('click.bs.dropdown', this.toggle);
-      $el.on('keydown.bs.dropdown', '[data-toggle="dropdown"],.dropdown-menu',this.keydown);
-    },
-
-    toggle : function (e) {
-      var $this = $(this)
-
-      if ($this.is('.disabled, :disabled')) return
-
-      var $parent  = getParent($this)
-      var isActive = $parent.hasClass('open')
-
-      clearMenus()
-
-      if (!isActive) {
-        if ('ontouchstart' in document.documentElement && !$parent.closest('.navbar-nav').length) {
-          // if mobile we use a backdrop because click events don't delegate
-          $(document.createElement('div'))
-            .addClass('dropdown-backdrop')
-            .insertAfter($(this))
-            .on('click', clearMenus)
-        }
-
-        var relatedTarget = { relatedTarget: this }
-        $parent.trigger(e = eventer.create('show.bs.dropdown', relatedTarget))
-
-        if (e.isDefaultPrevented()) return
-
-        $this
-          .trigger('focus')
-          .attr('aria-expanded', 'true')
-
-        $parent
-          .toggleClass('open')
-          .trigger(eventer.create('shown.bs.dropdown', relatedTarget))
-      }
-
-      return false
-    },
-
-    keydown : function (e) {
-      if (!/(38|40|27|32)/.test(e.which) || /input|textarea/i.test(e.target.tagName)) return
-
-      var $this = $(this)
-
-      e.preventDefault()
-      e.stopPropagation()
-
-      if ($this.is('.disabled, :disabled')) return
-
-      var $parent  = getParent($this)
-      var isActive = $parent.hasClass('open')
-
-      if (!isActive && e.which != 27 || isActive && e.which == 27) {
-        if (e.which == 27) $parent.find(toggle).trigger('focus')
-        return $this.trigger('click')
-      }
-
-      var desc = ' li:not(.disabled):visible a'
-      var $items = $parent.find('.dropdown-menu' + desc)
-
-      if (!$items.length) return
-
-      var index = $items.index(e.target)
-
-      if (e.which == 38 && index > 0)                 index--         // up
-      if (e.which == 40 && index < $items.length - 1) index++         // down
-      if (!~index)                                    index = 0
-
-      $items.eq(index).trigger('focus')
-    }
 
   });
 
   Dropdown.VERSION = '3.3.7'
-
-  function getParent($this) {
-    var selector = $this.attr('data-target')
-
-    if (!selector) {
-      selector = $this.attr('href')
-      selector = selector && /#[A-Za-z]/.test(selector) && selector.replace(/.*(?=#[^\s]*$)/, '') // strip for ie7
-    }
-
-    var $parent = selector && $(selector)
-
-    return $parent && $parent.length ? $parent : $this.parent()
-  }
-
-  function clearMenus(e) {
-    if (e && e.which === 3) return
-    $(backdrop).remove()
-    $(toggle).each(function () {
-      var $this         = $(this)
-      var $parent       = getParent($this)
-      var relatedTarget = { relatedTarget: this }
-
-      if (!$parent.hasClass('open')) return
-
-      if (e && e.type == 'click' && /input|textarea/i.test(e.target.tagName) && noder.contains($parent[0], e.target)) return
-
-      $parent.trigger(e = eventer.create('hide.bs.dropdown', relatedTarget))
-
-      if (e.isDefaultPrevented()) return
-
-      $this.attr('aria-expanded', 'false')
-      $parent.removeClass('open').trigger(eventer.create('hidden.bs.dropdown', relatedTarget))
-    })
-  }
 
 
   /*
@@ -1327,10 +1110,11 @@ define('skylark-bootstrap3/dropdown',[
 
   // APPLY TO STANDARD DROPDOWN ELEMENTS
   // ===================================
+  /*
   $(document)
     .on('click.bs.dropdown.data-api', clearMenus)
     .on('click.bs.dropdown.data-api', '.dropdown form', function (e) { e.stopPropagation() });
-
+  */
   plugins.register(Dropdown,"dropdown");
 
   return Dropdown;
@@ -2370,15 +2154,11 @@ define('skylark-bootstrap3/popover',[
 });
 
 define('skylark-bootstrap3/scrollspy',[
-  "skylark-langx/langx",
-  "skylark-domx-browser",
-  "skylark-domx-eventer",
-  "skylark-domx-noder",
-  "skylark-domx-geom",
-  "skylark-domx-query",
   "skylark-domx-plugins",
+  "skylark-domx-spy/ScrollSpy",
   "./bs3"
-],function(langx,browser,eventer,noder,geom,$,plugins,bs3){
+],function(plugins,_ScrollSpy,bs3){
+
 
 /* ========================================================================
  * Bootstrap: scrollspy.js v3.3.7
@@ -2393,128 +2173,15 @@ define('skylark-bootstrap3/scrollspy',[
   // SCROLLSPY CLASS DEFINITION
   // ==========================
 
-  var ScrollSpy = bs3.ScrollSpy = plugins.Plugin.inherit({
+  var ScrollSpy = bs3.ScrollSpy = _ScrollSpy.inherit({
     klassName: "ScrollSpy",
 
-    pluginName : "bs3.scrollspy",
+    pluginName : "bs3.scrollspy"
 
-    _construct : function(element,options) {
-      this.$body          = $(document.body)
-      this.$scrollElement = $(element).is(document.body) ? $(window) : $(element)
-      this.options        = langx.mixin({}, ScrollSpy.DEFAULTS, options)
-      this.selector       = (this.options.target || '') + ' .nav li > a'
-      this.offsets        = []
-      this.targets        = []
-      this.activeTarget   = null
-      this.scrollHeight   = 0
-
-      this.$scrollElement.on('scroll.bs.scrollspy', langx.proxy(this.process, this))
-      this.refresh()
-      this.process()
-    },
-
-    getScrollHeight : function () {
-      return this.$scrollElement[0].scrollHeight || Math.max(this.$body[0].scrollHeight, document.documentElement.scrollHeight)
-    },
-
-    refresh : function () {
-      var that          = this
-      var offsetMethod  = 'offset'
-      var offsetBase    = 0
-
-      this.offsets      = []
-      this.targets      = []
-      this.scrollHeight = this.getScrollHeight()
-
-      if (!langx.isWindow(this.$scrollElement[0])) {
-        offsetMethod = 'position'
-        offsetBase   = this.$scrollElement.scrollTop()
-      }
-
-      this.$body
-        .find(this.selector)
-        .map(function () {
-          var $el   = $(this)
-          var href  = $el.data('target') || $el.attr('href')
-          var $href = /^#./.test(href) && $(href)
-
-          return ($href
-            && $href.length
-            && $href.is(':visible')
-            && [[$href[offsetMethod]().top + offsetBase, href]]) || null
-        })
-        .sort(function (a, b) { return a[0] - b[0] })
-        .each(function () {
-          that.offsets.push(this[0])
-          that.targets.push(this[1])
-        })
-    },
-
-    process : function () {
-      var scrollTop    = this.$scrollElement.scrollTop() + this.options.offset
-      var scrollHeight = this.getScrollHeight()
-      var maxScroll    = this.options.offset + scrollHeight - this.$scrollElement.height()
-      var offsets      = this.offsets
-      var targets      = this.targets
-      var activeTarget = this.activeTarget
-      var i
-
-      if (this.scrollHeight != scrollHeight) {
-        this.refresh()
-      }
-
-      if (scrollTop >= maxScroll) {
-        return activeTarget != (i = targets[targets.length - 1]) && this.activate(i)
-      }
-
-      if (activeTarget && scrollTop < offsets[0]) {
-        this.activeTarget = null
-        return this.clear()
-      }
-
-      for (i = offsets.length; i--;) {
-        activeTarget != targets[i]
-          && scrollTop >= offsets[i]
-          && (offsets[i + 1] === undefined || scrollTop < offsets[i + 1])
-          && this.activate(targets[i])
-      }
-    },
-
-    activate : function (target) {
-      this.activeTarget = target
-
-      this.clear()
-
-      var selector = this.selector +
-        '[data-target="' + target + '"],' +
-        this.selector + '[href="' + target + '"]'
-
-      var active = $(selector)
-        .parents('li')
-        .addClass('active')
-
-      if (active.parent('.dropdown-menu').length) {
-        active = active
-          .closest('li.dropdown')
-          .addClass('active')
-      }
-
-      active.trigger('activate.bs.scrollspy')
-    },
-
-    clear : function () {
-      $(this.selector)
-        .parentsUntil(this.options.target, '.active')
-        .removeClass('active')
-    }
 
   });
 
   ScrollSpy.VERSION  = '3.3.7'
-
-  ScrollSpy.DEFAULTS = {
-    offset: 10
-  }
 
   /*
 
@@ -2556,15 +2223,10 @@ define('skylark-bootstrap3/scrollspy',[
 });
 
 define('skylark-bootstrap3/tab',[
-  "skylark-langx/langx",
-  "skylark-domx-browser",
-  "skylark-domx-eventer",
-  "skylark-domx-noder",
-  "skylark-domx-geom",
-  "skylark-domx-query",
   "skylark-domx-plugins",
+  "skylark-domx-panels/Tab",
   "./bs3"
-],function(langx,browser,eventer,noder,geom,$,plugins,bs3){
+],function(plugins,_Tab,bs3){
 
 /* ========================================================================
  * Bootstrap: tab.js v3.3.7
@@ -2580,118 +2242,14 @@ define('skylark-bootstrap3/tab',[
   // ====================
 
 
-  var Tab = bs3.Tab = plugins.Plugin.inherit({
+  var Tab = bs3.Tab = _Tab.inherit({
     klassName: "Tab",
 
-    pluginName : "bs3.tab",
-
-    _construct : function(element,options) {
-      // jscs:disable requireDollarBeforejQueryAssignment
-      this.element = $(element)
-      this.target = options && options.target;
-
-      // jscs:enable requireDollarBeforejQueryAssignment
-      this.element.on("click.bs.tab.data-api",langx.proxy(function(e){
-        e.preventDefault()
-        this.show();
-      },this));    
-    },
-
-    show : function () {
-      var $this    = this.element
-      var $ul      = $this.closest('ul:not(.dropdown-menu)')
-      var selector = this.target || $this.data('target');
-
-      if (!selector) {
-        selector = $this.attr('href')
-        selector = selector && selector.replace(/.*(?=#[^\s]*$)/, '') // strip for ie7
-      }
-
-      if ($this.parent('li').hasClass('active')) return
-
-      var $previous = $ul.find('.active:last a')
-      var hideEvent = eventer.create('hide.bs.tab', {
-        relatedTarget: $this[0]
-      })
-      var showEvent = eventer.create('show.bs.tab', {
-        relatedTarget: $previous[0]
-      })
-
-      $previous.trigger(hideEvent)
-      $this.trigger(showEvent)
-
-      if (showEvent.isDefaultPrevented() || hideEvent.isDefaultPrevented()) return
-
-      var $target = $(selector)
-
-      this.activate($this.closest('li'), $ul)
-      this.activate($target, $target.parent(), function () {
-        $previous.trigger({
-          type: 'hidden.bs.tab',
-          relatedTarget: $this[0]
-        })
-        $this.trigger({
-          type: 'shown.bs.tab',
-          relatedTarget: $previous[0]
-        })
-      })
-    },
-
-    activate : function (element, container, callback) {
-      var $active    = container.find('> .active')
-      var transition = callback
-        && browser.support.transition
-        && ($active.length && $active.hasClass('fade') || !!container.find('> .fade').length)
-
-      function next() {
-        $active
-          .removeClass('active')
-          .find('> .dropdown-menu > .active')
-            .removeClass('active')
-          .end()
-          .find('[data-toggle="tab"]')
-            .attr('aria-expanded', false)
-
-        element
-          .addClass('active')
-          .find('[data-toggle="tab"]')
-            .attr('aria-expanded', true)
-
-        if (transition) {
-          element[0].offsetWidth // reflow for transition
-          element.addClass('in')
-        } else {
-          element.removeClass('fade')
-        }
-
-        if (element.parent('.dropdown-menu').length) {
-          element
-            .closest('li.dropdown')
-              .addClass('active')
-            .end()
-            .find('[data-toggle="tab"]')
-              .attr('aria-expanded', true)
-        }
-
-        callback && callback()
-      }
-
-      $active.length && transition ?
-        $active
-          .one('transitionEnd', next)
-          .emulateTransitionEnd(Tab.TRANSITION_DURATION) :
-        next()
-
-      $active.removeClass('in')
-    }
-
-
+    pluginName : "bs3.tab"
   });
 
 
   Tab.VERSION = '3.3.7'
-
-  Tab.TRANSITION_DURATION = 150
 
   /*
   // TAB PLUGIN DEFINITION

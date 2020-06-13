@@ -97,7 +97,7 @@
               if (!$this.attr('data-target')) e.preventDefault()
 
               var $target = getTargetFromTrigger($this)
-              var data    = $target.plugin('bs3.collapse')
+              var data    = $target.plugin('bs3.collapse',"instance");
               var option  = data ? 'toggle' : $this.data()
 
               $target.collapse(option);

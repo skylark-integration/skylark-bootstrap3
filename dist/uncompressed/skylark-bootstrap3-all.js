@@ -75,7 +75,7 @@
   factory(define,require);
 
   if (!isAmd) {
-    var skylarkjs = require("skylark-langx/skylark");
+    var skylarkjs = require("skylark-langx-ns");
 
     if (isCmd) {
       module.exports = skylarkjs;
@@ -264,7 +264,6 @@ define('skylark-langx-types/types',[
         }
     }
 
-
     function isNull(obj) {
         return obj === null;
     }
@@ -346,7 +345,12 @@ define('skylark-langx-types/types',[
 
         isHtmlNode: isHtmlNode,
 
+        isNaN : function (obj) {
+            return isNaN(obj);
+        },
+
         isNull: isNull,
+
 
         isNumber: isNumber,
 
@@ -681,7 +685,7 @@ define('skylark-langx-objects/objects',[
         return keys;
     }
 
-    function each(obj, callback) {
+    function each(obj, callback,isForEach) {
         var length, key, i, undef, value;
 
         if (obj) {
@@ -692,7 +696,7 @@ define('skylark-langx-objects/objects',[
                 for (key in obj) {
                     if (obj.hasOwnProperty(key)) {
                         value = obj[key];
-                        if (callback.call(value, key, value) === false) {
+                        if ((isForEach ? callback.call(value, value, key) : callback.call(value, key, value) ) === false) {
                             break;
                         }
                     }
@@ -701,7 +705,7 @@ define('skylark-langx-objects/objects',[
                 // Loop array items
                 for (i = 0; i < length; i++) {
                     value = obj[i];
-                    if (callback.call(value, i, value) === false) {
+                    if ((isForEach ? callback.call(value, value, i) : callback.call(value, i, value) )=== false) {
                         break;
                     }
                 }
@@ -820,13 +824,15 @@ define('skylark-langx-objects/objects',[
             if (safe && target[key] !== undefined) {
                 continue;
             }
-            if (deep && (isPlainObject(source[key]) || isArray(source[key]))) {
-                if (isPlainObject(source[key]) && !isPlainObject(target[key])) {
+            // if (deep && (isPlainObject(source[key]) || isArray(source[key]))) {
+            //    if (isPlainObject(source[key]) && !isPlainObject(target[key])) {
+            if (deep && isPlainObject(source[key])) {
+                if (!isPlainObject(target[key])) {
                     target[key] = {};
                 }
-                if (isArray(source[key]) && !isArray(target[key])) {
-                    target[key] = [];
-                }
+                //if (isArray(source[key]) && !isArray(target[key])) {
+                //    target[key] = [];
+                //}
                 _mixin(target[key], source[key], deep, safe);
             } else if (source[key] !== undefined) {
                 target[key] = source[key]
@@ -2666,154 +2672,111 @@ define('skylark-langx/Deferred',[
 ],function(Deferred){
     return Deferred;
 });
-define('skylark-langx-emitter/Emitter',[
-  "skylark-langx-ns/ns",
+define('skylark-langx-events/events',[
+	"skylark-langx-ns"
+],function(skylark){
+	return skylark.attach("langx.events",{});
+});
+define('skylark-langx-events/Event',[
+  "skylark-langx-objects",
+  "skylark-langx-funcs",
+  "skylark-langx-klass",
+],function(objects,funcs,klass){
+    var eventMethods = {
+        preventDefault: "isDefaultPrevented",
+        stopImmediatePropagation: "isImmediatePropagationStopped",
+        stopPropagation: "isPropagationStopped"
+     };
+        
+
+    function compatible(event, source) {
+        if (source || !event.isDefaultPrevented) {
+            if (!source) {
+                source = event;
+            }
+
+            objects.each(eventMethods, function(name, predicate) {
+                var sourceMethod = source[name];
+                event[name] = function() {
+                    this[predicate] = funcs.returnTrue;
+                    return sourceMethod && sourceMethod.apply(source, arguments);
+                }
+                event[predicate] = funcs.returnFalse;
+            });
+        }
+        return event;
+    }
+
+
+    /*
+    var Event = klass({
+        _construct : function(type,props) {
+            CustomEvent.call(this,type.props);
+            objects.safeMixin(this, props);
+            compatible(this);
+        }
+    },CustomEvent);
+    */
+
+    class Event extends CustomEvent {
+        constructor(type,props) {
+            super(type,props);
+            objects.safeMixin(this, props);
+            compatible(this);
+        } 
+    }
+
+
+    Event.compatible = compatible;
+
+    return Event;
+    
+});
+define('skylark-langx-events/Listener',[
   "skylark-langx-types",
   "skylark-langx-objects",
   "skylark-langx-arrays",
-  "skylark-langx-klass"
-],function(skylark,types,objects,arrays,klass){
+  "skylark-langx-klass",
+  "./events",
+  "./Event"
+],function(types,objects,arrays,klass,events,Event){
     var slice = Array.prototype.slice,
         compact = arrays.compact,
         isDefined = types.isDefined,
         isPlainObject = types.isPlainObject,
         isFunction = types.isFunction,
+        isBoolean = types.isBoolean,
         isString = types.isString,
         isEmptyObject = types.isEmptyObject,
         mixin = objects.mixin,
         safeMixin = objects.safeMixin;
 
-    function parse(event) {
-        var segs = ("" + event).split(".");
-        return {
-            name: segs[0],
-            ns: segs.slice(1).join(" ")
-        };
-    }
 
-    var Emitter = klass({
-        on: function(events, selector, data, callback, ctx, /*used internally*/ one) {
-            var self = this,
-                _hub = this._hub || (this._hub = {});
-
-            if (isPlainObject(events)) {
-                ctx = callback;
-                each(events, function(type, fn) {
-                    self.on(type, selector, data, fn, ctx, one);
-                });
-                return this;
-            }
-
-            if (!isString(selector) && !isFunction(callback)) {
-                ctx = callback;
-                callback = data;
-                data = selector;
-                selector = undefined;
-            }
-
-            if (isFunction(data)) {
-                ctx = callback;
-                callback = data;
-                data = null;
-            }
-
-            if (isString(events)) {
-                events = events.split(/\s/)
-            }
-
-            events.forEach(function(event) {
-                var parsed = parse(event),
-                    name = parsed.name,
-                    ns = parsed.ns;
-
-                (_hub[name] || (_hub[name] = [])).push({
-                    fn: callback,
-                    selector: selector,
-                    data: data,
-                    ctx: ctx,
-                    ns : ns,
-                    one: one
-                });
-            });
-
-            return this;
-        },
-
-        one: function(events, selector, data, callback, ctx) {
-            return this.on(events, selector, data, callback, ctx, 1);
-        },
-
-        emit: function(e /*,argument list*/ ) {
-            if (!this._hub) {
-                return this;
-            }
-
-            var self = this;
-
-            if (isString(e)) {
-                e = new CustomEvent(e);
-            }
-
-            Object.defineProperty(e,"target",{
-                value : this
-            });
-
-            var args = slice.call(arguments, 1);
-            if (isDefined(args)) {
-                args = [e].concat(args);
-            } else {
-                args = [e];
-            }
-            [e.type || e.name, "all"].forEach(function(eventName) {
-                var parsed = parse(eventName),
-                    name = parsed.name,
-                    ns = parsed.ns;
-
-                var listeners = self._hub[name];
-                if (!listeners) {
-                    return;
-                }
-
-                var len = listeners.length,
-                    reCompact = false;
-
-                for (var i = 0; i < len; i++) {
-                    var listener = listeners[i];
-                    if (ns && (!listener.ns ||  !listener.ns.startsWith(ns))) {
-                        continue;
-                    }
-                    if (e.data) {
-                        if (listener.data) {
-                            e.data = mixin({}, listener.data, e.data);
-                        }
-                    } else {
-                        e.data = listener.data || null;
-                    }
-                    listener.fn.apply(listener.ctx, args);
-                    if (listener.one) {
-                        listeners[i] = null;
-                        reCompact = true;
-                    }
-                }
-
-                if (reCompact) {
-                    self._hub[eventName] = compact(listeners);
-                }
-
-            });
-            return this;
-        },
-
-        listened: function(event) {
-            var evtArr = ((this._hub || (this._events = {}))[event] || []);
-            return evtArr.length > 0;
-        },
+    var Listener = klass({
 
         listenTo: function(obj, event, callback, /*used internally*/ one) {
             if (!obj) {
                 return this;
             }
 
+            if (isBoolean(callback)) {
+                one = callback;
+                callback = null;
+            }
+
+            if (types.isPlainObject(event)){
+                //listenTo(obj,callbacks,one)
+                var callbacks = event;
+                for (var name in callbacks) {
+                    this.listeningTo(obj,name,callbacks[name],one);
+                }
+                return this;
+            }
+
+            if (!callback) {
+                callback = "handleEvent";
+            }
+            
             // Bind callbacks on obj,
             if (isString(callback)) {
                 callback = this[callback];
@@ -2854,6 +2817,217 @@ define('skylark-langx-emitter/Emitter',[
 
         listenToOnce: function(obj, event, callback) {
             return this.listenTo(obj, event, callback, 1);
+        },
+
+        unlistenTo: function(obj, event, callback) {
+            var listeningTo = this._listeningTo;
+            if (!listeningTo) {
+                return this;
+            }
+
+            if (isString(callback)) {
+                callback = this[callback];
+            }
+
+            for (var i = 0; i < listeningTo.length; i++) {
+                var listening = listeningTo[i];
+
+                if (obj && obj != listening.obj) {
+                    continue;
+                }
+
+                var listeningEvents = listening.events;
+                for (var eventName in listeningEvents) {
+                    if (event && event != eventName) {
+                        continue;
+                    }
+
+                    var listeningEvent = listeningEvents[eventName];
+
+                    for (var j = 0; j < listeningEvent.length; j++) {
+                        if (!callback || callback == listeningEvent[i]) {
+                            listening.obj.off(eventName, listeningEvent[i], this);
+                            listeningEvent[i] = null;
+                        }
+                    }
+
+                    listeningEvent = listeningEvents[eventName] = compact(listeningEvent);
+
+                    if (isEmptyObject(listeningEvent)) {
+                        listeningEvents[eventName] = null;
+                    }
+
+                }
+
+                if (isEmptyObject(listeningEvents)) {
+                    listeningTo[i] = null;
+                }
+            }
+
+            listeningTo = this._listeningTo = compact(listeningTo);
+            if (isEmptyObject(listeningTo)) {
+                this._listeningTo = null;
+            }
+
+            return this;
+        }
+    });
+
+    return events.Listener = Listener;
+
+});
+define('skylark-langx-events/Emitter',[
+  "skylark-langx-types",
+  "skylark-langx-objects",
+  "skylark-langx-arrays",
+  "skylark-langx-klass",
+  "./events",
+  "./Event",
+  "./Listener"
+],function(types,objects,arrays,klass,events,Event,Listener){
+    var slice = Array.prototype.slice,
+        compact = arrays.compact,
+        isDefined = types.isDefined,
+        isPlainObject = types.isPlainObject,
+        isFunction = types.isFunction,
+        isString = types.isString,
+        isEmptyObject = types.isEmptyObject,
+        mixin = objects.mixin,
+        safeMixin = objects.safeMixin;
+
+    function parse(event) {
+        var segs = ("" + event).split(".");
+        return {
+            name: segs[0],
+            ns: segs.slice(1).join(" ")
+        };
+    }
+
+    var Emitter = Listener.inherit({
+        on: function(events, selector, data, callback, ctx, /*used internally*/ one) {
+            var self = this,
+                _hub = this._hub || (this._hub = {});
+
+            if (isPlainObject(events)) {
+                ctx = callback;
+                each(events, function(type, fn) {
+                    self.on(type, selector, data, fn, ctx, one);
+                });
+                return this;
+            }
+
+            if (!isString(selector) && !isFunction(callback)) {
+                ctx = callback;
+                callback = data;
+                data = selector;
+                selector = undefined;
+            }
+
+            if (isFunction(data)) {
+                ctx = callback;
+                callback = data;
+                data = null;
+            }
+
+            if (!callback ) {
+                throw new Error("No callback function");
+            } else if (!isFunction(callback)) {
+                throw new Error("The callback  is not afunction");
+            }
+
+            if (isString(events)) {
+                events = events.split(/\s/)
+            }
+
+            events.forEach(function(event) {
+                var parsed = parse(event),
+                    name = parsed.name,
+                    ns = parsed.ns;
+
+                (_hub[name] || (_hub[name] = [])).push({
+                    fn: callback,
+                    selector: selector,
+                    data: data,
+                    ctx: ctx,
+                    ns : ns,
+                    one: one
+                });
+            });
+
+            return this;
+        },
+
+        one: function(events, selector, data, callback, ctx) {
+            return this.on(events, selector, data, callback, ctx, 1);
+        },
+
+        emit: function(e /*,argument list*/ ) {
+            if (!this._hub) {
+                return this;
+            }
+
+            var self = this;
+
+            if (isString(e)) {
+                e = new Event(e); //new CustomEvent(e);
+            }
+
+            Object.defineProperty(e,"target",{
+                value : this
+            });
+
+            var args = slice.call(arguments, 1);
+            if (isDefined(args)) {
+                args = [e].concat(args);
+            } else {
+                args = [e];
+            }
+            [e.type || e.name, "all"].forEach(function(eventName) {
+                var parsed = parse(eventName),
+                    name = parsed.name,
+                    ns = parsed.ns;
+
+                var listeners = self._hub[name];
+                if (!listeners) {
+                    return;
+                }
+
+                var len = listeners.length,
+                    reCompact = false;
+
+                for (var i = 0; i < len; i++) {
+                    if (e.isImmediatePropagationStopped && e.isImmediatePropagationStopped()) {
+                        return this;
+                    }
+                    var listener = listeners[i];
+                    if (ns && (!listener.ns ||  !listener.ns.startsWith(ns))) {
+                        continue;
+                    }
+                    if (e.data) {
+                        if (listener.data) {
+                            e.data = mixin({}, listener.data, e.data);
+                        }
+                    } else {
+                        e.data = listener.data || null;
+                    }
+                    listener.fn.apply(listener.ctx, args);
+                    if (listener.one) {
+                        listeners[i] = null;
+                        reCompact = true;
+                    }
+                }
+
+                if (reCompact) {
+                    self._hub[eventName] = compact(listeners);
+                }
+
+            });
+            return this;
+        },
+
+        listened: function(event) {
+            var evtArr = ((this._hub || (this._events = {}))[event] || []);
+            return evtArr.length > 0;
         },
 
         off: function(events, callback) {
@@ -2898,90 +3072,52 @@ define('skylark-langx-emitter/Emitter',[
 
             return this;
         },
-        unlistenTo: function(obj, event, callback) {
-            var listeningTo = this._listeningTo;
-            if (!listeningTo) {
-                return this;
-            }
-            for (var i = 0; i < listeningTo.length; i++) {
-                var listening = listeningTo[i];
-
-                if (obj && obj != listening.obj) {
-                    continue;
-                }
-
-                var listeningEvents = listening.events;
-                for (var eventName in listeningEvents) {
-                    if (event && event != eventName) {
-                        continue;
-                    }
-
-                    var listeningEvent = listeningEvents[eventName];
-
-                    for (var j = 0; j < listeningEvent.length; j++) {
-                        if (!callback || callback == listeningEvent[i]) {
-                            listening.obj.off(eventName, listeningEvent[i], this);
-                            listeningEvent[i] = null;
-                        }
-                    }
-
-                    listeningEvent = listeningEvents[eventName] = compact(listeningEvent);
-
-                    if (isEmptyObject(listeningEvent)) {
-                        listeningEvents[eventName] = null;
-                    }
-
-                }
-
-                if (isEmptyObject(listeningEvents)) {
-                    listeningTo[i] = null;
-                }
-            }
-
-            listeningTo = this._listeningTo = compact(listeningTo);
-            if (isEmptyObject(listeningTo)) {
-                this._listeningTo = null;
-            }
-
-            return this;
-        },
-
         trigger  : function() {
             return this.emit.apply(this,arguments);
         }
     });
 
-    Emitter.createEvent = function (type,props) {
-        var e = new CustomEvent(type,props);
-        return safeMixin(e, props);
-    };
 
-    return skylark.attach("langx.Emitter",Emitter);
+    return events.Emitter = Emitter;
 
 });
-define('skylark-langx-emitter/Evented',[
-  "skylark-langx-ns/ns",
-	"./Emitter"
-],function(skylark,Emitter){
-	return skylark.attach("langx.Evented",Emitter);
-});
-define('skylark-langx-emitter/main',[
-	"./Emitter",
-	"./Evented"
-],function(Emitter){
-	return Emitter;
-});
-define('skylark-langx-emitter', ['skylark-langx-emitter/main'], function (main) { return main; });
-
 define('skylark-langx/Emitter',[
-    "skylark-langx-emitter"
-],function(Evented){
-    return Evented;
+    "skylark-langx-events/Emitter"
+],function(Emitter){
+    return Emitter;
 });
 define('skylark-langx/Evented',[
-    "skylark-langx-emitter"
-],function(Evented){
-    return Evented;
+    "./Emitter"
+],function(Emitter){
+    return Emitter;
+});
+define('skylark-langx-events/createEvent',[
+	"./events",
+	"./Event"
+],function(events,Event){
+    function createEvent(type,props) {
+        //var e = new CustomEvent(type,props);
+        //return safeMixin(e, props);
+        return new Event(type,props);
+    };
+
+    return events.createEvent = createEvent;	
+});
+define('skylark-langx-events/main',[
+	"./events",
+	"./Event",
+	"./Listener",
+	"./Emitter",
+	"./createEvent"
+],function(events){
+	return events;
+});
+define('skylark-langx-events', ['skylark-langx-events/main'], function (main) { return main; });
+
+define('skylark-langx/events',[
+	"skylark-langx-events"
+],function(events){
+	return events;
 });
 define('skylark-langx/funcs',[
     "skylark-langx-funcs"
@@ -3080,6 +3216,209 @@ define('skylark-langx/hoster',[
 	"skylark-langx-hoster"
 ],function(hoster){
 	return hoster;
+});
+define('skylark-langx-maths/maths',[
+    "skylark-langx-ns",
+    "skylark-langx-types"
+],function(skylark,types){
+
+
+	var _lut = [];
+
+	for ( var i = 0; i < 256; i ++ ) {
+
+		_lut[ i ] = ( i < 16 ? '0' : '' ) + ( i ).toString( 16 );
+
+	}
+
+	var maths = {
+
+		DEG2RAD: Math.PI / 180,
+		RAD2DEG: 180 / Math.PI,
+
+
+
+		clamp: function ( value, min, max ) {
+
+			return Math.max( min, Math.min( max, value ) );
+
+		},
+
+		// compute euclidian modulo of m % n
+		// https://en.wikipedia.org/wiki/Modulo_operation
+
+		euclideanModulo: function ( n, m ) {
+
+			return ( ( n % m ) + m ) % m;
+
+		},
+
+		// Linear mapping from range <a1, a2> to range <b1, b2>
+
+		mapLinear: function ( x, a1, a2, b1, b2 ) {
+
+			return b1 + ( x - a1 ) * ( b2 - b1 ) / ( a2 - a1 );
+
+		},
+
+		// https://en.wikipedia.org/wiki/Linear_interpolation
+
+		lerp: function ( x, y, t ) {
+
+			return ( 1 - t ) * x + t * y;
+
+		},
+
+		// http://en.wikipedia.org/wiki/Smoothstep
+
+		smoothstep: function ( x, min, max ) {
+
+			if ( x <= min ) return 0;
+			if ( x >= max ) return 1;
+
+			x = ( x - min ) / ( max - min );
+
+			return x * x * ( 3 - 2 * x );
+
+		},
+
+		smootherstep: function ( x, min, max ) {
+
+			if ( x <= min ) return 0;
+			if ( x >= max ) return 1;
+
+			x = ( x - min ) / ( max - min );
+
+			return x * x * x * ( x * ( x * 6 - 15 ) + 10 );
+
+		},
+
+		// Random integer from <low, high> interval
+
+		randInt: function ( low, high ) {
+
+			return low + Math.floor( Math.random() * ( high - low + 1 ) );
+
+		},
+
+		// Random float from <low, high> interval
+
+		randFloat: function ( low, high ) {
+
+			return low + Math.random() * ( high - low );
+
+		},
+
+		// Random float from <-range/2, range/2> interval
+
+		randFloatSpread: function ( range ) {
+
+			return range * ( 0.5 - Math.random() );
+
+		},
+
+		degToRad: function ( degrees ) {
+
+			return degrees * MathUtils.DEG2RAD;
+
+		},
+
+		radToDeg: function ( radians ) {
+
+			return radians * MathUtils.RAD2DEG;
+
+		},
+
+		isPowerOfTwo: function ( value ) {
+
+			return ( value & ( value - 1 ) ) === 0 && value !== 0;
+
+		},
+
+		ceilPowerOfTwo: function ( value ) {
+
+			return Math.pow( 2, Math.ceil( Math.log( value ) / Math.LN2 ) );
+
+		},
+
+		floorPowerOfTwo: function ( value ) {
+
+			return Math.pow( 2, Math.floor( Math.log( value ) / Math.LN2 ) );
+
+		},
+
+		setQuaternionFromProperEuler: function ( q, a, b, c, order ) {
+
+			// Intrinsic Proper Euler Angles - see https://en.wikipedia.org/wiki/Euler_angles
+
+			// rotations are applied to the axes in the order specified by 'order'
+			// rotation by angle 'a' is applied first, then by angle 'b', then by angle 'c'
+			// angles are in radians
+
+			var cos = Math.cos;
+			var sin = Math.sin;
+
+			var c2 = cos( b / 2 );
+			var s2 = sin( b / 2 );
+
+			var c13 = cos( ( a + c ) / 2 );
+			var s13 = sin( ( a + c ) / 2 );
+
+			var c1_3 = cos( ( a - c ) / 2 );
+			var s1_3 = sin( ( a - c ) / 2 );
+
+			var c3_1 = cos( ( c - a ) / 2 );
+			var s3_1 = sin( ( c - a ) / 2 );
+
+			if ( order === 'XYX' ) {
+
+				q.set( c2 * s13, s2 * c1_3, s2 * s1_3, c2 * c13 );
+
+			} else if ( order === 'YZY' ) {
+
+				q.set( s2 * s1_3, c2 * s13, s2 * c1_3, c2 * c13 );
+
+			} else if ( order === 'ZXZ' ) {
+
+				q.set( s2 * c1_3, s2 * s1_3, c2 * s13, c2 * c13 );
+
+			} else if ( order === 'XZX' ) {
+
+				q.set( c2 * s13, s2 * s3_1, s2 * c3_1, c2 * c13 );
+
+			} else if ( order === 'YXY' ) {
+
+				q.set( s2 * c3_1, c2 * s13, s2 * s3_1, c2 * c13 );
+
+			} else if ( order === 'ZYZ' ) {
+
+				q.set( s2 * s3_1, s2 * c3_1, c2 * s13, c2 * c13 );
+
+			} else {
+
+				console.warn( 'THREE.MathUtils: .setQuaternionFromProperEuler() encountered an unknown order.' );
+
+			}
+
+		}
+
+	};
+
+
+
+	return  skylark.attach("langx.maths",maths);
+});
+define('skylark-langx-maths/main',[
+	"./maths"
+],function(maths){
+	return maths;
+});
+define('skylark-langx-maths', ['skylark-langx-maths/main'], function (main) { return main; });
+
+define('skylark-langx/maths',[
+    "skylark-langx-maths"
+],function(maths){
+    return maths;
 });
 define('skylark-langx/numbers',[
 	"skylark-langx-numbers"
@@ -3285,8 +3624,13 @@ define('skylark-langx-strings/strings',[
         return document.getElementById(id).innerHTML;
     };
 
+
+    function ltrim(str) {
+        return str.replace(/^\s+/, '');
+    }
+    
     function rtrim(str) {
-        return str.replace(/\s+$/g, '');
+        return str.replace(/\s+$/, '');
     }
 
     // Slugify a string
@@ -3353,6 +3697,8 @@ define('skylark-langx-strings/strings',[
 
         generateUUID : generateUUID,
 
+        ltrim : ltrim,
+
         lowerFirst: function(str) {
             return str.charAt(0).toLowerCase() + str.slice(1);
         },
@@ -3380,8 +3726,159 @@ define('skylark-langx-strings/strings',[
 	}) ; 
 
 });
-define('skylark-langx-strings/main',[
+define('skylark-langx-strings/base64',[
 	"./strings"
+],function(strings) {
+
+	// private property
+	const _keyStr = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+
+	// private method for UTF-8 encoding
+	function _utf8_encode(string) {
+		string = string.replace(/\r\n/g,"\n");
+		var utftext = "";
+
+		for (var n = 0; n < string.length; n++) {
+
+			var c = string.charCodeAt(n);
+
+			if (c < 128) {
+				utftext += String.fromCharCode(c);
+			}
+			else if((c > 127) && (c < 2048)) {
+				utftext += String.fromCharCode((c >> 6) | 192);
+				utftext += String.fromCharCode((c & 63) | 128);
+			}
+			else {
+				utftext += String.fromCharCode((c >> 12) | 224);
+				utftext += String.fromCharCode(((c >> 6) & 63) | 128);
+				utftext += String.fromCharCode((c & 63) | 128);
+			}
+
+		}
+
+		return utftext;
+	}
+
+	// private method for UTF-8 decoding
+	function _utf8_decode(utftext) {
+		var string = "";
+		var i = 0;
+		var c = c1 = c2 = 0;
+
+		while ( i < utftext.length ) {
+
+			c = utftext.charCodeAt(i);
+
+			if (c < 128) {
+				string += String.fromCharCode(c);
+				i++;
+			}
+			else if((c > 191) && (c < 224)) {
+				c2 = utftext.charCodeAt(i+1);
+				string += String.fromCharCode(((c & 31) << 6) | (c2 & 63));
+				i += 2;
+			}
+			else {
+				c2 = utftext.charCodeAt(i+1);
+				c3 = utftext.charCodeAt(i+2);
+				string += String.fromCharCode(((c & 15) << 12) | ((c2 & 63) << 6) | (c3 & 63));
+				i += 3;
+			}
+
+		}
+
+		return string;
+	}
+
+	// public method for encoding
+	function encode(input, binary) {
+		binary = (binary != null) ? binary : false;
+		var output = "";
+		var chr1, chr2, chr3, enc1, enc2, enc3, enc4;
+		var i = 0;
+
+		if (!binary)
+		{
+			input = _utf8_encode(input);
+		}
+
+		while (i < input.length) {
+
+			chr1 = input.charCodeAt(i++);
+			chr2 = input.charCodeAt(i++);
+			chr3 = input.charCodeAt(i++);
+
+			enc1 = chr1 >> 2;
+			enc2 = ((chr1 & 3) << 4) | (chr2 >> 4);
+			enc3 = ((chr2 & 15) << 2) | (chr3 >> 6);
+			enc4 = chr3 & 63;
+
+			if (isNaN(chr2)) {
+				enc3 = enc4 = 64;
+			} else if (isNaN(chr3)) {
+				enc4 = 64;
+			}
+
+			output = output +
+			this._keyStr.charAt(enc1) + this._keyStr.charAt(enc2) +
+			this._keyStr.charAt(enc3) + this._keyStr.charAt(enc4);
+
+		}
+
+		return output;
+	}
+
+	// public method for decoding
+	function decode(input, binary) {
+		binary = (binary != null) ? binary : false;
+		var output = "";
+		var chr1, chr2, chr3;
+		var enc1, enc2, enc3, enc4;
+		var i = 0;
+
+		input = input.replace(/[^A-Za-z0-9\+\/\=]/g, "");
+
+		while (i < input.length) {
+
+			enc1 = this._keyStr.indexOf(input.charAt(i++));
+			enc2 = this._keyStr.indexOf(input.charAt(i++));
+			enc3 = this._keyStr.indexOf(input.charAt(i++));
+			enc4 = this._keyStr.indexOf(input.charAt(i++));
+
+			chr1 = (enc1 << 2) | (enc2 >> 4);
+			chr2 = ((enc2 & 15) << 4) | (enc3 >> 2);
+			chr3 = ((enc3 & 3) << 6) | enc4;
+
+			output = output + String.fromCharCode(chr1);
+
+			if (enc3 != 64) {
+				output = output + String.fromCharCode(chr2);
+			}
+			if (enc4 != 64) {
+				output = output + String.fromCharCode(chr3);
+			}
+
+		}
+
+		if (!binary) {
+			output = _utf8_decode(output);
+		}
+
+		return output;
+
+	}
+
+
+	return strings.base64 = {
+		decode,
+		encode
+	};
+	
+});
+define('skylark-langx-strings/main',[
+	"./strings",
+	"./base64"
 ],function(strings){
 	return strings;
 });
@@ -3604,6 +4101,16 @@ define('skylark-langx/Stateful',[
 
 	return Stateful;
 });
+define('skylark-langx-emitter/Emitter',[
+    "skylark-langx-events/Emitter"
+],function(Emitter){
+    return Emitter;
+});
+define('skylark-langx-emitter/Evented',[
+	"./Emitter"
+],function(Emitter){
+	return Emitter;
+});
 define('skylark-langx-topic/topic',[
 	"skylark-langx-ns",
 	"skylark-langx-emitter/Evented"
@@ -3662,16 +4169,39 @@ define('skylark-langx/langx',[
     "./Deferred",
     "./Emitter",
     "./Evented",
+    "./events",
     "./funcs",
     "./hoster",
     "./klass",
+    "./maths",
     "./numbers",
     "./objects",
     "./Stateful",
     "./strings",
     "./topic",
     "./types"
-], function(skylark,arrays,ArrayStore,aspect,async,datetimes,Deferred,Emitter,Evented,funcs,hoster,klass,numbers,objects,Stateful,strings,topic,types) {
+], function(
+    skylark,
+    arrays,
+    ArrayStore,
+    aspect,
+    async,
+    datetimes,
+    Deferred,
+    Emitter,
+    Evented,
+    events,
+    funcs,
+    hoster,
+    klass,
+    maths,
+    numbers,
+    objects,
+    Stateful,
+    strings,
+    topic,
+    types
+) {
     "use strict";
     var toString = {}.toString,
         concat = Array.prototype.concat,
@@ -4304,6 +4834,9 @@ function removeSelfClosingTags(xml) {
         return new RegExp("^(" + (blockNodes.join('|')) + ")$").test(node.nodeName.toLowerCase());
     }
 
+    function isActive (elem) {
+            return elem === document.activeElement && (elem.type || elem.href);
+    }
 
     /*   
      * Get the owner document object for the specified element.
@@ -4427,6 +4960,18 @@ function removeSelfClosingTags(xml) {
     }
 
 
+    function selectable(elem, selectable) {
+        if (elem === undefined || elem.style === undefined)
+            return;
+        elem.onselectstart = selectable ? function () {
+            return false;
+        } : function () {
+        };
+        elem.style.MozUserSelect = selectable ? 'auto' : 'none';
+        elem.style.KhtmlUserSelect = selectable ? 'auto' : 'none';
+        elem.unselectable = selectable ? 'on' : 'off';
+    }
+
     /*   
      * traverse the specified node and its descendants, perform the callback function on each
      * @param {Node} node
@@ -4500,6 +5045,12 @@ function removeSelfClosingTags(xml) {
     langx.mixin(noder, {
         active  : activeElement,
 
+        after: after,
+
+        append: append,
+
+        before: before,
+
         blur : function(el) {
             el.blur();
         },
@@ -4509,14 +5060,16 @@ function removeSelfClosingTags(xml) {
         },
 
         clone: clone,
+
+        contains: contains,
+
         contents: contents,
 
         createElement: createElement,
 
         createFragment: createFragment,
 
-        contains: contains,
-
+     
         createTextNode: createTextNode,
 
         doc: doc,
@@ -4528,6 +5081,8 @@ function removeSelfClosingTags(xml) {
         focusable: focusable,
 
         html: html,
+
+        isActive,
 
         isChildOf: isChildOf,
 
@@ -4545,13 +5100,7 @@ function removeSelfClosingTags(xml) {
 
         ownerWindow: ownerWindow,
 
-        after: after,
-
-        before: before,
-
         prepend: prepend,
-
-        append: append,
 
         reflow: reflow,
 
@@ -4560,6 +5109,8 @@ function removeSelfClosingTags(xml) {
         removeChild : removeChild,
 
         replace: replace,
+
+        selectable,
 
         traverse: traverse,
 
@@ -8249,12 +8800,12 @@ define('skylark-domx-styler/styler',[
         var self = this;
         name.split(/\s+/g).forEach(function(klass) {
             if (when === undefined) {
-                when = !self.hasClass(elm, klass);
+                when = !hasClass(elm, klass);
             }
             if (when) {
-                self.addClass(elm, klass);
+                addClass(elm, klass);
             } else {
-                self.removeClass(elm, klass)
+                removeClass(elm, klass)
             }
         });
 
@@ -8554,6 +9105,27 @@ define('skylark-domx-geom/geom',[
             width: cs.width - pex.left - pex.right,
             height: cs.height - pex.top - pex.bottom
         };
+    }
+
+
+    function fullCover(elem, hor, vert) {
+        let vertical = vert;
+        let horizontal = hor;
+        if (langx.isUndefined(horizontal)) {
+            horizontal = true;
+        }
+        if (langx.isUndefined(vertical)) {
+            vertical = true;
+        }
+        elem.style.position = 'absolute';
+        if (horizontal) {
+            elem.style.left = 0;
+            elem.style.right = 0;
+        }
+        if (vertical) {
+            elem.style.top = 0;
+            elem.style.bottom = 0;
+        }
     }
 
     /*
@@ -8937,6 +9509,8 @@ define('skylark-domx-geom/geom',[
         clientWidth: clientWidth,
 
         contentRect: contentRect,
+
+        fullCover,
 
         getDocumentSize: getDocumentSize,
 
@@ -10216,8 +10790,11 @@ define('skylark-domx-fx/main',[
 define('skylark-domx-fx', ['skylark-domx-fx/main'], function (main) { return main; });
 
 define('skylark-domx-plugins/plugins',[
-    "skylark-langx/skylark",
-    "skylark-langx/langx",
+    "skylark-langx-ns",
+    "skylark-langx-types",
+    "skylark-langx-objects",
+    "skylark-langx-funcs",
+    "skylark-langx-events/Emitter",
     "skylark-domx-noder",
     "skylark-domx-data",
     "skylark-domx-eventer",
@@ -10227,7 +10804,22 @@ define('skylark-domx-plugins/plugins',[
     "skylark-domx-fx",
     "skylark-domx-query",
     "skylark-domx-velm"
-], function(skylark, langx, noder, datax, eventer, finder, geom, styler, fx, $, elmx) {
+], function(
+    skylark,
+    types,
+    objects,
+    funcs,
+    Emitter, 
+    noder, 
+    datax, 
+    eventer, 
+    finder, 
+    geom, 
+    styler, 
+    fx, 
+    $, 
+    elmx
+) {
     "use strict";
 
     var slice = Array.prototype.slice,
@@ -10306,10 +10898,12 @@ define('skylark-domx-plugins/plugins',[
                                 "attempted to call method '" + methodName + "'" );
                         }
 
-                        if ( !langx.isFunction( plugin[ methodName ] ) || methodName.charAt( 0 ) === "_" ) {
+                        if ( !types.isFunction( plugin[ methodName ] ) || methodName.charAt( 0 ) === "_" ) {
                             throw new Error( "no such method '" + methodName + "' for " + pluginName +
                                 " plugin instance" );
                         }
+
+                        args = slice.call(args,1); //remove method name
 
                         var ret = plugin[methodName].apply(plugin,args);
                         if (ret == plugin) {
@@ -10334,7 +10928,7 @@ define('skylark-domx-plugins/plugins',[
         pluginKlasses[pluginName] = pluginKlass;
 
         if (shortcutName) {
-            if (instanceDataName && langx.isFunction(instanceDataName)) {
+            if (instanceDataName && types.isFunction(instanceDataName)) {
                 extfn = instanceDataName;
                 instanceDataName = null;
             } 
@@ -10376,7 +10970,7 @@ define('skylark-domx-plugins/plugins',[
     }
 
  
-    var Plugin =   langx.Evented.inherit({
+    var Plugin =   Emitter.inherit({
         klassName: "Plugin",
 
         _construct : function(elm,options) {
@@ -10402,15 +10996,15 @@ define('skylark-domx-plugins/plugins',[
             for (var i=0;i<ctors.length;i++) {
               ctor = ctors[i];
               if (ctor.prototype.hasOwnProperty("options")) {
-                langx.mixin(defaults,ctor.prototype.options,true);
+                objects.mixin(defaults,ctor.prototype.options,true);
               }
               if (ctor.hasOwnProperty("options")) {
-                langx.mixin(defaults,ctor.options,true);
+                objects.mixin(defaults,ctor.options,true);
               }
             }
           }
           Object.defineProperty(this,"options",{
-            value :langx.mixin({},defaults,options,true)
+            value :objects.mixin({},defaults,options,true)
           });
 
           //return this.options = langx.mixin({},defaults,options);
@@ -10419,15 +11013,16 @@ define('skylark-domx-plugins/plugins',[
 
 
         destroy: function() {
-            var that = this;
 
             this._destroy();
-            // We can probably remove the unbind calls in 2.0
-            // all event bindings should go through this._on()
+
+            // remove all event lisener
+            this.unlistenTo();
+            // remove data 
             datax.removeData(this._elm,this.pluginName );
         },
 
-        _destroy: langx.noop,
+        _destroy: funcs.noop,
 
         _delay: function( handler, delay ) {
             function handlerProxy() {
@@ -10436,6 +11031,17 @@ define('skylark-domx-plugins/plugins',[
             }
             var instance = this;
             return setTimeout( handlerProxy, delay || 0 );
+        },
+
+        elmx : function(elm) {
+            elm = elm || this._elm;
+            return elmx(elm);
+
+        },
+
+        $ : function(elm) {
+            elm = elm || this._elm;
+            return $(elm);
         },
 
         option: function( key, value ) {
@@ -10447,7 +11053,7 @@ define('skylark-domx-plugins/plugins',[
             if ( arguments.length === 0 ) {
 
                 // Don't return a reference to the internal hash
-                return langx.mixin( {}, this.options );
+                return objects.mixin( {}, this.options );
             }
 
             if ( typeof key === "string" ) {
@@ -10457,7 +11063,7 @@ define('skylark-domx-plugins/plugins',[
                 parts = key.split( "." );
                 key = parts.shift();
                 if ( parts.length ) {
-                    curOption = options[ key ] = langx.mixin( {}, this.options[ key ] );
+                    curOption = options[ key ] = objects.mixin( {}, this.options[ key ] );
                     for ( i = 0; i < parts.length - 1; i++ ) {
                         curOption[ parts[ i ] ] = curOption[ parts[ i ] ] || {};
                         curOption = curOption[ parts[ i ] ];
@@ -10510,6 +11116,10 @@ define('skylark-domx-plugins/plugins',[
 
     });
 
+    Plugin.instantiate = function(elm,options) {
+        return instantiate(elm,this.prototype.pluginName,options);
+    };
+    
     $.fn.plugin = function(name,options) {
         var args = slice.call( arguments, 1 ),
             self = this,
@@ -10523,7 +11133,7 @@ define('skylark-domx-plugins/plugins',[
 
     elmx.partial("plugin",function(name,options) {
         var args = slice.call( arguments, 1 );
-        return instantiate.apply(this,[this.domNode,name].concat(args));
+        return instantiate.apply(this,[this._elm,name].concat(args));
     }); 
 
 
@@ -10531,7 +11141,7 @@ define('skylark-domx-plugins/plugins',[
         return plugins;
     }
      
-    langx.mixin(plugins, {
+    objects.mixin(plugins, {
         instantiate,
         Plugin,
         register,
@@ -10546,6 +11156,139 @@ define('skylark-domx-plugins/main',[
 	return plugins;
 });
 define('skylark-domx-plugins', ['skylark-domx-plugins/main'], function (main) { return main; });
+
+define('skylark-domx-spy/spy',[
+  "skylark-langx/skylark",
+],function(skylark){
+
+
+	return skylark.attach("domx.spy",{});
+
+});
+
+define('skylark-domx-spy/Affix',[
+  "skylark-langx/langx",
+  "skylark-domx-browser",
+  "skylark-domx-eventer",
+  "skylark-domx-noder",
+  "skylark-domx-geom",
+  "skylark-domx-query",
+  "skylark-domx-plugins",
+  "./spy"
+],function(langx,browser,eventer,noder,geom,$,plugins,spy){
+
+  'use strict';
+
+  // AFFIX CLASS DEFINITION
+  // ======================
+
+  var Affix = spy.Affix = plugins.Plugin.inherit({
+        klassName: "Affix",
+
+        pluginName : "domx.affix",
+
+        options : {
+          offset: 0,
+          target: window
+        },
+
+        _construct : function(elm,options) {
+          this.overrided(elm,options);
+
+          this.$target = $(this.options.target)
+            .on('scroll.affix.data-api', langx.proxy(this.checkPosition, this))
+            .on('click.affix.data-api',  langx.proxy(this.checkPositionWithEventLoop, this))
+
+          this.$element     = this.$()
+          this.affixed      = null;
+          this.unpin        = null;
+          this.pinnedOffset = null;
+
+          this.checkPosition();
+        },
+
+        getState : function (scrollHeight, height, offsetTop, offsetBottom) {
+          var scrollTop    = this.$target.scrollTop()
+          var position     = this.$element.offset()
+          var targetHeight = this.$target.height()
+
+          if (offsetTop != null && this.affixed == 'top') return scrollTop < offsetTop ? 'top' : false
+
+          if (this.affixed == 'bottom') {
+            if (offsetTop != null) return (scrollTop + this.unpin <= position.top) ? false : 'bottom'
+            return (scrollTop + targetHeight <= scrollHeight - offsetBottom) ? false : 'bottom'
+          }
+
+          var initializing   = this.affixed == null
+          var colliderTop    = initializing ? scrollTop : position.top
+          var colliderHeight = initializing ? targetHeight : height
+
+          if (offsetTop != null && scrollTop <= offsetTop) return 'top'
+          if (offsetBottom != null && (colliderTop + colliderHeight >= scrollHeight - offsetBottom)) return 'bottom'
+
+          return false
+        },
+
+        getPinnedOffset : function () {
+          if (this.pinnedOffset) return this.pinnedOffset
+          this.$element.removeClass(Affix.RESET).addClass('affix')
+          var scrollTop = this.$target.scrollTop()
+          var position  = this.$element.offset()
+          return (this.pinnedOffset = position.top - scrollTop)
+        },
+
+        checkPositionWithEventLoop : function () {
+          setTimeout(langx.proxy(this.checkPosition, this), 1)
+        },
+
+        checkPosition : function () {
+          if (!this.$element.is(':visible')) return
+
+          var height       = this.$element.height()
+          var offset       = this.options.offset
+          var offsetTop    = offset.top
+          var offsetBottom = offset.bottom
+          var scrollHeight = Math.max($(document).height(), $(document.body).height())
+
+          if (typeof offset != 'object')         offsetBottom = offsetTop = offset
+          if (typeof offsetTop == 'function')    offsetTop    = offset.top(this.$element)
+          if (typeof offsetBottom == 'function') offsetBottom = offset.bottom(this.$element)
+
+          var affix = this.getState(scrollHeight, height, offsetTop, offsetBottom)
+
+          if (this.affixed != affix) {
+            if (this.unpin != null) this.$element.css('top', '')
+
+            var affixType = 'affix' + (affix ? '-' + affix : '')
+            var e         = eventer.create(affixType + '.affix')
+
+            this.$element.trigger(e)
+
+            if (e.isDefaultPrevented()) return
+
+            this.affixed = affix
+            this.unpin = affix == 'bottom' ? this.getPinnedOffset() : null
+
+            this.$element
+              .removeClass(Affix.RESET)
+              .addClass(affixType)
+              .trigger(affixType.replace('affix', 'affixed') + '.affix')
+          }
+
+          if (affix == 'bottom') {
+            this.$element.offset({
+              top: scrollHeight - height - offsetBottom
+            })
+          }
+        }
+  });
+
+  Affix.RESET    = 'affix affix-top affix-bottom'
+
+  plugins.register(Affix);
+
+  return spy.Affix = Affix;
+});
 
 define('skylark-bootstrap3/bs3',[
   "skylark-langx/skylark",
@@ -10623,15 +11366,10 @@ define('skylark-bootstrap3/bs3',[
 });
 
 define('skylark-bootstrap3/affix',[
-  "skylark-langx/langx",
-  "skylark-domx-browser",
-  "skylark-domx-eventer",
-  "skylark-domx-noder",
-  "skylark-domx-geom",
-  "skylark-domx-query",
   "skylark-domx-plugins",
+  "skylark-domx-spy/Affix",
   "./bs3"
-],function(langx,browser,eventer,noder,geom,$,plugins,bs3){
+],function(plugins,_Affix,bs3){
 
 
 /* ========================================================================
@@ -10647,112 +11385,14 @@ define('skylark-bootstrap3/affix',[
   // AFFIX CLASS DEFINITION
   // ======================
 
-  var Affix = bs3.Affix = plugins.Plugin.inherit({
+  var Affix = bs3.Affix = _Affix.inherit({
         klassName: "Affix",
 
-        pluginName : "bs3.affix",
-
-        _construct : function(element,options) {
-          this.options = langx.mixin({}, Affix.DEFAULTS, options)
-
-          this.$target = $(this.options.target)
-            .on('scroll.bs.affix.data-api', langx.proxy(this.checkPosition, this))
-            .on('click.bs.affix.data-api',  langx.proxy(this.checkPositionWithEventLoop, this))
-
-          this.$element     = $(element)
-          this.affixed      = null;
-          this.unpin        = null;
-          this.pinnedOffset = null;
-
-          this.checkPosition();
-        },
-
-        getState : function (scrollHeight, height, offsetTop, offsetBottom) {
-          var scrollTop    = this.$target.scrollTop()
-          var position     = this.$element.offset()
-          var targetHeight = this.$target.height()
-
-          if (offsetTop != null && this.affixed == 'top') return scrollTop < offsetTop ? 'top' : false
-
-          if (this.affixed == 'bottom') {
-            if (offsetTop != null) return (scrollTop + this.unpin <= position.top) ? false : 'bottom'
-            return (scrollTop + targetHeight <= scrollHeight - offsetBottom) ? false : 'bottom'
-          }
-
-          var initializing   = this.affixed == null
-          var colliderTop    = initializing ? scrollTop : position.top
-          var colliderHeight = initializing ? targetHeight : height
-
-          if (offsetTop != null && scrollTop <= offsetTop) return 'top'
-          if (offsetBottom != null && (colliderTop + colliderHeight >= scrollHeight - offsetBottom)) return 'bottom'
-
-          return false
-        },
-
-        getPinnedOffset : function () {
-          if (this.pinnedOffset) return this.pinnedOffset
-          this.$element.removeClass(Affix.RESET).addClass('affix')
-          var scrollTop = this.$target.scrollTop()
-          var position  = this.$element.offset()
-          return (this.pinnedOffset = position.top - scrollTop)
-        },
-
-        checkPositionWithEventLoop : function () {
-          setTimeout(langx.proxy(this.checkPosition, this), 1)
-        },
-
-        checkPosition : function () {
-          if (!this.$element.is(':visible')) return
-
-          var height       = this.$element.height()
-          var offset       = this.options.offset
-          var offsetTop    = offset.top
-          var offsetBottom = offset.bottom
-          var scrollHeight = Math.max($(document).height(), $(document.body).height())
-
-          if (typeof offset != 'object')         offsetBottom = offsetTop = offset
-          if (typeof offsetTop == 'function')    offsetTop    = offset.top(this.$element)
-          if (typeof offsetBottom == 'function') offsetBottom = offset.bottom(this.$element)
-
-          var affix = this.getState(scrollHeight, height, offsetTop, offsetBottom)
-
-          if (this.affixed != affix) {
-            if (this.unpin != null) this.$element.css('top', '')
-
-            var affixType = 'affix' + (affix ? '-' + affix : '')
-            var e         = eventer.create(affixType + '.bs.affix')
-
-            this.$element.trigger(e)
-
-            if (e.isDefaultPrevented()) return
-
-            this.affixed = affix
-            this.unpin = affix == 'bottom' ? this.getPinnedOffset() : null
-
-            this.$element
-              .removeClass(Affix.RESET)
-              .addClass(affixType)
-              .trigger(affixType.replace('affix', 'affixed') + '.bs.affix')
-          }
-
-          if (affix == 'bottom') {
-            this.$element.offset({
-              top: scrollHeight - height - offsetBottom
-            })
-          }
-        }
+        pluginName : "bs3.affix"
   });
 
 
   Affix.VERSION  = '3.3.7'
-
-  Affix.RESET    = 'affix affix-top affix-bottom'
-
-  Affix.DEFAULTS = {
-    offset: 0,
-    target: window
-  }
-
 
   /*
   // AFFIX PLUGIN DEFINITION
@@ -11382,6 +12022,262 @@ define('skylark-bootstrap3/carousel',[
     return Carousel;
 
 });
+define('skylark-domx-panels/panels',[
+  "skylark-langx/skylark",
+  "skylark-langx/langx",
+  "skylark-domx-browser",
+  "skylark-domx-eventer",
+  "skylark-domx-noder",
+  "skylark-domx-geom",
+  "skylark-domx-query"
+],function(skylark,langx,browser,eventer,noder,geom,$){
+	var panels = {};
+
+	var CONST = {
+		BACKSPACE_KEYCODE: 8,
+		COMMA_KEYCODE: 188, // `,` & `<`
+		DELETE_KEYCODE: 46,
+		DOWN_ARROW_KEYCODE: 40,
+		ENTER_KEYCODE: 13,
+		TAB_KEYCODE: 9,
+		UP_ARROW_KEYCODE: 38
+	};
+
+	var isShiftHeld = function isShiftHeld (e) { return e.shiftKey === true; };
+
+	var isKey = function isKey (keyCode) {
+		return function compareKeycodes (e) {
+			return e.keyCode === keyCode;
+		};
+	};
+
+	var isBackspaceKey = isKey(CONST.BACKSPACE_KEYCODE);
+	var isDeleteKey = isKey(CONST.DELETE_KEYCODE);
+	var isTabKey = isKey(CONST.TAB_KEYCODE);
+	var isUpArrow = isKey(CONST.UP_ARROW_KEYCODE);
+	var isDownArrow = isKey(CONST.DOWN_ARROW_KEYCODE);
+
+	var ENCODED_REGEX = /&[^\s]*;/;
+	/*
+	 * to prevent double encoding decodes content in loop until content is encoding free
+	 */
+	var cleanInput = function cleanInput (questionableMarkup) {
+		// check for encoding and decode
+		while (ENCODED_REGEX.test(questionableMarkup)) {
+			questionableMarkup = $('<i>').html(questionableMarkup).text();
+		}
+
+		// string completely decoded now encode it
+		return $('<i>').text(questionableMarkup).html();
+	};
+
+	langx.mixin(panels, {
+		CONST: CONST,
+		cleanInput: cleanInput,
+		isBackspaceKey: isBackspaceKey,
+		isDeleteKey: isDeleteKey,
+		isShiftHeld: isShiftHeld,
+		isTabKey: isTabKey,
+		isUpArrow: isUpArrow,
+		isDownArrow: isDownArrow
+	});
+
+	return skylark.attach("domx.panels",panels);
+
+});
+
+define('skylark-domx-panels/Collapse',[
+    "skylark-langx/langx",
+    "skylark-domx-browser",
+    "skylark-domx-eventer",
+    "skylark-domx-query",
+    "skylark-domx-plugins",
+    "./panels"
+], function(langx, browser, eventer,  $, plugins, panels) {
+
+
+  'use strict';
+
+  // COLLAPSE PUBLIC CLASS DEFINITION
+  // ================================
+
+  var Collapse =  plugins.Plugin.inherit({
+    klassName: "Collapse",
+
+    pluginName : "domx.collapse",
+
+    options : {
+      toggle: true
+    },
+
+    _construct : function(elm,options) {
+      ////options = langx.mixin({}, Collapse.DEFAULTS, $(element).data(), options)
+      this.overrided(elm,options);
+      this.$element      = this.$();
+      //this.$trigger      = $('[data-toggle="collapse"][href="#' + elm.id + '"],' +
+      //                     '[data-toggle="collapse"][data-target="#' + elm.id + '"]')
+      this.transitioning = null
+
+      //if (this.options.parent) {
+      //  this.$parent = this.getParent()
+      //} else {
+      //  this.addAriaAndCollapsedClass(this.$element, this.$trigger)
+      //}
+
+      if (this.options.toggle) {
+        this.toggle();
+      }
+    },
+
+    dimension : function () {
+      var hasWidth = this.$element.hasClass('width');
+      return hasWidth ? 'width' : 'height';
+    },
+
+    show : function () {
+      if (this.transitioning || this.$element.hasClass('in')) {
+        return;
+      }
+
+      //var activesData;
+      //var actives = this.$parent && this.$parent.children('.panel').children('.in, .collapsing')
+
+      //if (actives && actives.length) {
+      //  activesData = actives.data('collapse')
+      //  if (activesData && activesData.transitioning) return
+      //}
+
+      var startEvent = eventer.create('show.collapse');
+      this.$element.trigger(startEvent)
+      if (startEvent.isDefaultPrevented()) return
+
+      //if (actives && actives.length) {
+      //  //Plugin.call(actives, 'hide')
+      //  actives.plugin("domx.collapse").hide();
+      //  activesData || actives.data('collapse', null)
+      //}
+
+      var dimension = this.dimension();
+
+      this.$element
+        .removeClass('collapse')
+        .addClass('collapsing')[dimension](0)
+        .attr('aria-expanded', true)
+
+      //this.$trigger
+      //  .removeClass('collapsed')
+      //  .attr('aria-expanded', true)
+
+      this.transitioning = 1
+
+      var complete = function () {
+        this.$element
+          .removeClass('collapsing')
+          .addClass('collapse in')[dimension]('')
+        this.transitioning = 0
+        this.$element
+          .trigger('shown.collapse')
+      }
+
+      if (!browser.support.transition) {
+        return complete.call(this);
+      }
+
+      var scrollSize = langx.camelCase(['scroll', dimension].join('-'));
+
+      this.$element
+        .one('transitionEnd', langx.proxy(complete, this))
+        .emulateTransitionEnd(Collapse.TRANSITION_DURATION)[dimension](this.$element[0][scrollSize]);
+    },
+
+    hide : function () {
+      if (this.transitioning || !this.$element.hasClass('in')) {
+        return ;
+      }
+
+      var startEvent = eventer.create('hide.collapse');
+      this.$element.trigger(startEvent);
+      if (startEvent.isDefaultPrevented()) {
+        return ;
+      } 
+
+      var dimension = this.dimension();
+
+      this.$element[dimension](this.$element[dimension]())[0].offsetHeight;
+
+      this.$element
+        .addClass('collapsing')
+        .removeClass('collapse in')
+        .attr('aria-expanded', false);
+
+      //this.$trigger
+      //  .addClass('collapsed')
+      //  .attr('aria-expanded', false);
+
+      this.transitioning = 1;
+
+      var complete = function () {
+        this.transitioning = 0;
+        this.$element
+          .removeClass('collapsing')
+          .addClass('collapse')
+          .trigger('hidden.collapse');
+      }
+
+      if (!browser.support.transition) {
+        return complete.call(this);
+      }
+
+      this.$element
+        [dimension](0)
+        .one('transitionEnd', langx.proxy(complete, this))
+        .emulateTransitionEnd(Collapse.TRANSITION_DURATION)
+    },
+
+    toggle : function () {
+      this[this.$element.hasClass('in') ? 'hide' : 'show']();
+    }
+
+    /*
+    getParent : function () {
+      return $(this.options.parent)
+        .find('[data-toggle="collapse"][data-parent="' + this.options.parent + '"]')
+        .each(langx.proxy(function (i, element) {
+          var $element = $(element)
+          this.addAriaAndCollapsedClass(getTargetFromTrigger($element), $element)
+        }, this))
+        .end()
+    },
+
+    addAriaAndCollapsedClass : function ($element, $trigger) {
+      var isOpen = $element.hasClass('in');
+
+      $element.attr('aria-expanded', isOpen);
+      $trigger
+        .toggleClass('collapsed', !isOpen)
+        .attr('aria-expanded', isOpen);
+    }
+    */
+  });
+
+  Collapse.TRANSITION_DURATION = 350;
+
+  /*
+  function getTargetFromTrigger($trigger) {
+    var href
+    var target = $trigger.attr('data-target')
+      || (href = $trigger.attr('href')) && href.replace(/.*(?=#[^\s]+$)/, '') // strip for ie7
+
+    return $(target)
+  }
+  */
+
+  plugins.register(Collapse);
+
+  return Collapse;
+
+});
+
 define('skylark-bootstrap3/collapse',[
     "skylark-langx/langx",
     "skylark-domx-browser",
@@ -11390,9 +12286,10 @@ define('skylark-bootstrap3/collapse',[
     "skylark-domx-geom",
     "skylark-domx-query",
     "skylark-domx-plugins",
-    "./bs3",
+    "skylark-domx-panels/Collapse",
+   "./bs3",
     "./transition"
-], function(langx, browser, eventer, noder, geom, $, plugins, bs3) {
+], function(langx, browser, eventer, noder, geom, $, plugins,_Collapse, bs3) {
 
 
 /* ========================================================================
@@ -11410,38 +12307,34 @@ define('skylark-bootstrap3/collapse',[
   // COLLAPSE PUBLIC CLASS DEFINITION
   // ================================
 
-  var Collapse = bs3.Collapse = plugins.Plugin.inherit({
+  var Collapse = bs3.Collapse = _Collapse.inherit({
     klassName: "Collapse",
 
     pluginName : "bs3.collapse",
 
     _construct : function(element,options) {
-      options = langx.mixin({}, Collapse.DEFAULTS, $(element).data(), options)
-      this.overrided(element,options);
-
-      this.$element      = $(element)
+      options = langx.mixin({}, $(element).data(), options)
       this.$trigger      = $('[data-toggle="collapse"][href="#' + element.id + '"],' +
                              '[data-toggle="collapse"][data-target="#' + element.id + '"]')
-      this.transitioning = null
+      //this.transitioning = null
 
-      if (this.options.parent) {
-        this.$parent = this.getParent()
+      if (options.parent) {
+        this.$parent = this.getParent(options)
       } else {
-        this.addAriaAndCollapsedClass(this.$element, this.$trigger)
+        this.addAriaAndCollapsedClass($(element), this.$trigger)
       }
 
-      if (this.options.toggle) {
-        this.toggle();
-      }
+      this.overrided(element,options);
+      //this.$element      = $(element)
+
+      //if (this.options.toggle) {
+      //  this.toggle();
+      //}
     },
 
-    dimension : function () {
-      var hasWidth = this.$element.hasClass('width')
-      return hasWidth ? 'width' : 'height'
-    },
 
     show : function () {
-      if (this.transitioning || this.$element.hasClass('in')) return
+      //if (this.transitioning || this.$element.hasClass('in')) return
 
       var activesData
       var actives = this.$parent && this.$parent.children('.panel').children('.in, .collapsing')
@@ -11451,9 +12344,9 @@ define('skylark-bootstrap3/collapse',[
         if (activesData && activesData.transitioning) return
       }
 
-      var startEvent = eventer.create('show.bs.collapse')
-      this.$element.trigger(startEvent)
-      if (startEvent.isDefaultPrevented()) return
+      //var startEvent = eventer.create('show.bs.collapse')
+      //this.$element.trigger(startEvent)
+      //if (startEvent.isDefaultPrevented()) return
 
       if (actives && actives.length) {
         //Plugin.call(actives, 'hide')
@@ -11461,82 +12354,83 @@ define('skylark-bootstrap3/collapse',[
         activesData || actives.data('bs.collapse', null)
       }
 
-      var dimension = this.dimension()
+      //var dimension = this.dimension()
 
-      this.$element
-        .removeClass('collapse')
-        .addClass('collapsing')[dimension](0)
-        .attr('aria-expanded', true)
+      //this.$element
+      //  .removeClass('collapse')
+      //  .addClass('collapsing')[dimension](0)
+      //  .attr('aria-expanded', true)
+
+      this.overrided(); //add
 
       this.$trigger
         .removeClass('collapsed')
         .attr('aria-expanded', true)
 
-      this.transitioning = 1
+      //this.transitioning = 1
 
-      var complete = function () {
-        this.$element
-          .removeClass('collapsing')
-          .addClass('collapse in')[dimension]('')
-        this.transitioning = 0
-        this.$element
-          .trigger('shown.bs.collapse')
-      }
+      //var complete = function () {
+      //  this.$element
+      //    .removeClass('collapsing')
+      //    .addClass('collapse in')[dimension]('')
+      //  this.transitioning = 0
+      //  this.$element
+      //    .trigger('shown.bs.collapse')
+      //}
 
-      if (!browser.support.transition) return complete.call(this)
+      //if (!browser.support.transition) return complete.call(this)
 
-      var scrollSize = langx.camelCase(['scroll', dimension].join('-'))
+      //var scrollSize = langx.camelCase(['scroll', dimension].join('-'))
 
-      this.$element
-        .one('transitionEnd', langx.proxy(complete, this))
-        .emulateTransitionEnd(Collapse.TRANSITION_DURATION)[dimension](this.$element[0][scrollSize])
+      //this.$element
+      //  .one('transitionEnd', langx.proxy(complete, this))
+      //  .emulateTransitionEnd(Collapse.TRANSITION_DURATION)[dimension](this.$element[0][scrollSize])
     },
 
     hide : function () {
-      if (this.transitioning || !this.$element.hasClass('in')) return
+      //if (this.transitioning || !this.$element.hasClass('in')) return
 
-      var startEvent = eventer.create('hide.bs.collapse')
-      this.$element.trigger(startEvent)
-      if (startEvent.isDefaultPrevented()) return
+      //var startEvent = eventer.create('hide.bs.collapse')
+      //this.$element.trigger(startEvent)
+      //if (startEvent.isDefaultPrevented()) return
 
-      var dimension = this.dimension()
+      //var dimension = this.dimension()
 
-      this.$element[dimension](this.$element[dimension]())[0].offsetHeight
+      //this.$element[dimension](this.$element[dimension]())[0].offsetHeight
 
-      this.$element
-        .addClass('collapsing')
-        .removeClass('collapse in')
-        .attr('aria-expanded', false)
+      //this.$element
+      //  .addClass('collapsing')
+      //  .removeClass('collapse in')
+      //  .attr('aria-expanded', false)
 
+      this.overrided();
       this.$trigger
         .addClass('collapsed')
         .attr('aria-expanded', false)
 
-      this.transitioning = 1
+      //this.transitioning = 1
 
-      var complete = function () {
-        this.transitioning = 0
-        this.$element
-          .removeClass('collapsing')
-          .addClass('collapse')
-          .trigger('hidden.bs.collapse')
-      }
+      //var complete = function () {
+      //  this.transitioning = 0
+      //  this.$element
+      //    .removeClass('collapsing')
+      //    .addClass('collapse')
+      //    .trigger('hidden.bs.collapse')
+      //}
 
-      if (!browser.support.transition) return complete.call(this)
+      //if (!browser.support.transition) return complete.call(this)
 
-      this.$element
-        [dimension](0)
-        .one('transitionEnd', langx.proxy(complete, this))
-        .emulateTransitionEnd(Collapse.TRANSITION_DURATION)
+      //this.$element
+      //  [dimension](0)
+      //  .one('transitionEnd', langx.proxy(complete, this))
+      //  .emulateTransitionEnd(Collapse.TRANSITION_DURATION)
     },
 
-    toggle : function () {
-      this[this.$element.hasClass('in') ? 'hide' : 'show']()
-    },
 
-    getParent : function () {
-      return $(this.options.parent)
-        .find('[data-toggle="collapse"][data-parent="' + this.options.parent + '"]')
+    getParent : function (options) {
+      options = options || this.options;
+      return $(options.parent)
+        .find('[data-toggle="collapse"][data-parent="' + options.parent + '"]')
         .each(langx.proxy(function (i, element) {
           var $element = $(element)
           this.addAriaAndCollapsedClass(getTargetFromTrigger($element), $element)
@@ -11556,12 +12450,6 @@ define('skylark-bootstrap3/collapse',[
   });
 
   Collapse.VERSION  = '3.3.7'
-
-  Collapse.TRANSITION_DURATION = 350
-
-  Collapse.DEFAULTS = {
-    toggle: true
-  }
 
 
   function getTargetFromTrigger($trigger) {
@@ -11609,7 +12497,104 @@ define('skylark-bootstrap3/collapse',[
 
 });
 
-define('skylark-bootstrap3/dropdown',[
+define('skylark-domx-popups/popups',[
+	"skylark-langx-ns"
+],function(skylark){
+
+	var stack = [];
+
+
+
+    /**
+    * get the offset below/above and left/right element depending on screen position
+    * Thanks https://github.com/jquery/jquery-ui/blob/master/ui/jquery.ui.datepicker.js
+    */
+    function around(ref) {
+        var extraY = 0;
+        var dpSize = geom.size(popup);
+        var dpWidth = dpSize.width;
+        var dpHeight = dpSize.height;
+        var refHeight = geom.height(ref);
+        var doc = ref.ownerDocument;
+        var docElem = doc.documentElement;
+        var viewWidth = docElem.clientWidth + geom.scrollLeft(doc);
+        var viewHeight = docElem.clientHeight + geom.scrollTop(doc);
+        var offset = geom.pagePosition(ref);
+        var offsetLeft = offset.left;
+        var offsetTop = offset.top;
+
+        offsetTop += refHeight;
+
+        offsetLeft -=
+            Math.min(offsetLeft, (offsetLeft + dpWidth > viewWidth && viewWidth > dpWidth) ?
+            Math.abs(offsetLeft + dpWidth - viewWidth) : 0);
+
+        offsetTop -=
+            Math.min(offsetTop, ((offsetTop + dpHeight > viewHeight && viewHeight > dpHeight) ?
+            Math.abs(dpHeight + refHeight - extraY) : extraY));
+
+        return {
+            top: offsetTop,
+            bottom: offset.bottom,
+            left: offsetLeft,
+            right: offset.right,
+            width: offset.width,
+            height: offset.height
+        };
+    }
+
+
+	/*
+	 * Popup the ui elment at the specified position
+	 * @param popup  element to display
+	 * @param options
+	 *  - around {HtmlEleent}
+	 *  - at {x,y}
+	 *  - parent {}
+	 */
+
+	function open(popup,options) {
+		if (options.around) {
+			//A DOM node that should be used as a reference point for placing the pop-up. 
+		}
+
+	}
+
+	/*
+	 * Close specified popup and any popups that it parented.
+	 * If no popup is specified, closes all popups.
+     */
+	function close(popup) {
+		var count = 0;
+
+		if (popup) {
+			for (var i= stack.length-1; i>=0; i--) {
+				if (stack[i].popup == popup) {
+					count = stack.length - i; 
+					break;
+				}
+			}
+		} else {
+			count = stack.length;
+		}
+		for (var i=0; i<count ; i++ ) {
+			var top = stack.pop(),
+				popup1 = top.popup;
+			if (popup1.hide) {
+				popup1.hide();
+			} else {
+
+			}
+
+		} 
+	}
+	return skylark.attach("domx.popups",{
+		around,
+		open,
+		close
+	});
+});
+define('skylark-domx-popups/Dropdown',[
   "skylark-langx/langx",
   "skylark-domx-browser",
   "skylark-domx-eventer",
@@ -11617,16 +12602,9 @@ define('skylark-bootstrap3/dropdown',[
   "skylark-domx-geom",
   "skylark-domx-query",
   "skylark-domx-plugins",
-  "./bs3"
-],function(langx,browser,eventer,noder,geom,$,plugins,bs3){
+  "./popups"
+],function(langx,browser,eventer,noder,geom,$,plugins,popups){
 
-/* ========================================================================
- * Bootstrap: dropdown.js v3.3.7
- * http://getbootstrap.com/javascript/#dropdowns
- * ========================================================================
- * Copyright 2011-2016 Twitter, Inc.
- * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
- * ======================================================================== */
   'use strict';
 
   // DROPDOWN CLASS DEFINITION
@@ -11635,24 +12613,35 @@ define('skylark-bootstrap3/dropdown',[
   var backdrop = '.dropdown-backdrop';
   var toggle   = '[data-toggle="dropdown"]';
 
-  var Dropdown = bs3.Dropdown = plugins.Plugin.inherit({
+  var Dropdown = plugins.Plugin.inherit({
     klassName: "Dropdown",
 
-    pluginName : "bs3.dropdown",
+    pluginName : "domx.dropdown",
 
-    _construct : function(element,options) {
-      var $el = this.$element = $(element);
-      $el.on('click.bs.dropdown', this.toggle);
-      $el.on('keydown.bs.dropdown', '[data-toggle="dropdown"],.dropdown-menu',this.keydown);
+    options : {
+      "selectors" : {
+        "toggler" : '[data-toggle="dropdown"],.dropdown-menu'
+      }
+
+    },
+
+    _construct : function(elm,options) {
+      this.overrided(elm,options);
+
+      var $el = this.$element = $(this._elm);
+      $el.on('click.dropdown', this.toggle);
+      $el.on('keydown.dropdown', this.options.selectors.toggler,this.keydown);
     },
 
     toggle : function (e) {
       var $this = $(this)
 
-      if ($this.is('.disabled, :disabled')) return
+      if ($this.is('.disabled, :disabled')) {
+        return;
+      }
 
       var $parent  = getParent($this)
-      var isActive = $parent.hasClass('open')
+      var isActive = $parent.hasClass('open');
 
       clearMenus()
 
@@ -11666,9 +12655,11 @@ define('skylark-bootstrap3/dropdown',[
         }
 
         var relatedTarget = { relatedTarget: this }
-        $parent.trigger(e = eventer.create('show.bs.dropdown', relatedTarget))
+        $parent.trigger(e = eventer.create('show.dropdown', relatedTarget))
 
-        if (e.isDefaultPrevented()) return
+        if (e.isDefaultPrevented()) {
+          return;
+        }
 
         $this
           .trigger('focus')
@@ -11676,21 +12667,25 @@ define('skylark-bootstrap3/dropdown',[
 
         $parent
           .toggleClass('open')
-          .trigger(eventer.create('shown.bs.dropdown', relatedTarget))
+          .trigger(eventer.create('shown.dropdown', relatedTarget))
       }
 
       return false
     },
 
     keydown : function (e) {
-      if (!/(38|40|27|32)/.test(e.which) || /input|textarea/i.test(e.target.tagName)) return
+      if (!/(38|40|27|32)/.test(e.which) || /input|textarea/i.test(e.target.tagName)) {
+        return;
+      }
 
-      var $this = $(this)
+      var $this = $(this);
 
       e.preventDefault()
       e.stopPropagation()
 
-      if ($this.is('.disabled, :disabled')) return
+      if ($this.is('.disabled, :disabled')) {
+        return;
+      }
 
       var $parent  = getParent($this)
       var isActive = $parent.hasClass('open')
@@ -11711,12 +12706,10 @@ define('skylark-bootstrap3/dropdown',[
       if (e.which == 40 && index < $items.length - 1) index++         // down
       if (!~index)                                    index = 0
 
-      $items.eq(index).trigger('focus')
+      $items.eq(index).trigger('focus');
     }
 
   });
-
-  Dropdown.VERSION = '3.3.7'
 
   function getParent($this) {
     var selector = $this.attr('data-target')
@@ -11726,9 +12719,9 @@ define('skylark-bootstrap3/dropdown',[
       selector = selector && /#[A-Za-z]/.test(selector) && selector.replace(/.*(?=#[^\s]*$)/, '') // strip for ie7
     }
 
-    var $parent = selector && $(selector)
+    var $parent = selector && $(selector);
 
-    return $parent && $parent.length ? $parent : $this.parent()
+    return $parent && $parent.length ? $parent : $this.parent();
   }
 
   function clearMenus(e) {
@@ -11743,14 +12736,65 @@ define('skylark-bootstrap3/dropdown',[
 
       if (e && e.type == 'click' && /input|textarea/i.test(e.target.tagName) && noder.contains($parent[0], e.target)) return
 
-      $parent.trigger(e = eventer.create('hide.bs.dropdown', relatedTarget))
+      $parent.trigger(e = eventer.create('hide.dropdown', relatedTarget))
 
       if (e.isDefaultPrevented()) return
 
       $this.attr('aria-expanded', 'false')
-      $parent.removeClass('open').trigger(eventer.create('hidden.bs.dropdown', relatedTarget))
+      $parent.removeClass('open').trigger(eventer.create('hidden.dropdown', relatedTarget))
     })
   }
+
+
+
+  // APPLY TO STANDARD DROPDOWN ELEMENTS
+  // ===================================
+  $(document)
+    .on('click.dropdown.data-api', clearMenus)
+    .on('click.dropdown.data-api', '.dropdown form', function (e) { e.stopPropagation() });
+
+  plugins.register(Dropdown);
+
+  return popups.Dropdown = Dropdown;
+
+});
+
+define('skylark-bootstrap3/dropdown',[
+  "skylark-langx/langx",
+  "skylark-domx-browser",
+  "skylark-domx-eventer",
+  "skylark-domx-noder",
+  "skylark-domx-geom",
+  "skylark-domx-query",
+  "skylark-domx-plugins",
+  "skylark-domx-popups/Dropdown",
+  "./bs3"
+],function(langx,browser,eventer,noder,geom,$,plugins,_Dropdown,bs3){
+
+/* ========================================================================
+ * Bootstrap: dropdown.js v3.3.7
+ * http://getbootstrap.com/javascript/#dropdowns
+ * ========================================================================
+ * Copyright 2011-2016 Twitter, Inc.
+ * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
+ * ======================================================================== */
+  'use strict';
+
+  // DROPDOWN CLASS DEFINITION
+  // =========================
+
+  var backdrop = '.dropdown-backdrop';
+  var toggle   = '[data-toggle="dropdown"]';
+
+  var Dropdown = bs3.Dropdown = _Dropdown.inherit({
+    klassName: "Dropdown",
+
+    pluginName : "bs3.dropdown",
+
+
+  });
+
+  Dropdown.VERSION = '3.3.7'
 
 
   /*
@@ -11788,10 +12832,11 @@ define('skylark-bootstrap3/dropdown',[
 
   // APPLY TO STANDARD DROPDOWN ELEMENTS
   // ===================================
+  /*
   $(document)
     .on('click.bs.dropdown.data-api', clearMenus)
     .on('click.bs.dropdown.data-api', '.dropdown form', function (e) { e.stopPropagation() });
-
+  */
   plugins.register(Dropdown,"dropdown");
 
   return Dropdown;
@@ -12830,7 +13875,7 @@ define('skylark-bootstrap3/popover',[
 
 });
 
-define('skylark-bootstrap3/scrollspy',[
+define('skylark-domx-spy/ScrollSpy',[
   "skylark-langx/langx",
   "skylark-domx-browser",
   "skylark-domx-eventer",
@@ -12838,38 +13883,35 @@ define('skylark-bootstrap3/scrollspy',[
   "skylark-domx-geom",
   "skylark-domx-query",
   "skylark-domx-plugins",
-  "./bs3"
-],function(langx,browser,eventer,noder,geom,$,plugins,bs3){
-
-/* ========================================================================
- * Bootstrap: scrollspy.js v3.3.7
- * http://getbootstrap.com/javascript/#scrollspy
- * ========================================================================
- * Copyright 2011-2016 Twitter, Inc.
- * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
- * ======================================================================== */
+  "./spy"
+],function(langx,browser,eventer,noder,geom,$,plugins,spy){
 
   'use strict';
 
   // SCROLLSPY CLASS DEFINITION
   // ==========================
 
-  var ScrollSpy = bs3.ScrollSpy = plugins.Plugin.inherit({
+  var ScrollSpy =  plugins.Plugin.inherit({
     klassName: "ScrollSpy",
 
-    pluginName : "bs3.scrollspy",
+    pluginName : "domx.scrollspy",
 
-    _construct : function(element,options) {
+    options: {
+      offset: 10
+    },
+
+    _construct : function(elm,options) {
+      this.overrided(elm,options);
       this.$body          = $(document.body)
-      this.$scrollElement = $(element).is(document.body) ? $(window) : $(element)
-      this.options        = langx.mixin({}, ScrollSpy.DEFAULTS, options)
+      this.$scrollElement = this.$().is(document.body) ? $(window) : this.$();
+      //this.options        = langx.mixin({}, ScrollSpy.DEFAULTS, options)
       this.selector       = (this.options.target || '') + ' .nav li > a'
       this.offsets        = []
       this.targets        = []
       this.activeTarget   = null
       this.scrollHeight   = 0
 
-      this.$scrollElement.on('scroll.bs.scrollspy', langx.proxy(this.process, this))
+      this.$scrollElement.on('scroll.scrollspy', langx.proxy(this.process, this))
       this.refresh()
       this.process()
     },
@@ -12960,7 +14002,7 @@ define('skylark-bootstrap3/scrollspy',[
           .addClass('active')
       }
 
-      active.trigger('activate.bs.scrollspy')
+      active.trigger('activate.scrollspy')
     },
 
     clear : function () {
@@ -12971,11 +14013,41 @@ define('skylark-bootstrap3/scrollspy',[
 
   });
 
-  ScrollSpy.VERSION  = '3.3.7'
+  plugins.register(ScrollSpy);
 
-  ScrollSpy.DEFAULTS = {
-    offset: 10
-  }
+  return spy.ScrollSpy = ScrollSpy;
+
+});
+
+define('skylark-bootstrap3/scrollspy',[
+  "skylark-domx-plugins",
+  "skylark-domx-spy/ScrollSpy",
+  "./bs3"
+],function(plugins,_ScrollSpy,bs3){
+
+
+/* ========================================================================
+ * Bootstrap: scrollspy.js v3.3.7
+ * http://getbootstrap.com/javascript/#scrollspy
+ * ========================================================================
+ * Copyright 2011-2016 Twitter, Inc.
+ * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
+ * ======================================================================== */
+
+  'use strict';
+
+  // SCROLLSPY CLASS DEFINITION
+  // ==========================
+
+  var ScrollSpy = bs3.ScrollSpy = _ScrollSpy.inherit({
+    klassName: "ScrollSpy",
+
+    pluginName : "bs3.scrollspy"
+
+
+  });
+
+  ScrollSpy.VERSION  = '3.3.7'
 
   /*
 
@@ -13016,7 +14088,7 @@ define('skylark-bootstrap3/scrollspy',[
 
 });
 
-define('skylark-bootstrap3/tab',[
+define('skylark-domx-panels/Tab',[
   "skylark-langx/langx",
   "skylark-domx-browser",
   "skylark-domx-eventer",
@@ -13024,16 +14096,8 @@ define('skylark-bootstrap3/tab',[
   "skylark-domx-geom",
   "skylark-domx-query",
   "skylark-domx-plugins",
-  "./bs3"
-],function(langx,browser,eventer,noder,geom,$,plugins,bs3){
-
-/* ========================================================================
- * Bootstrap: tab.js v3.3.7
- * http://getbootstrap.com/javascript/#tabs
- * ========================================================================
- * Copyright 2011-2016 Twitter, Inc.
- * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
- * ======================================================================== */
+  "./panels"
+],function(langx,browser,eventer,noder,geom,$,plugins,panels){
 
   'use strict';
 
@@ -13041,10 +14105,10 @@ define('skylark-bootstrap3/tab',[
   // ====================
 
 
-  var Tab = bs3.Tab = plugins.Plugin.inherit({
+  var Tab =  plugins.Plugin.inherit({
     klassName: "Tab",
 
-    pluginName : "bs3.tab",
+    pluginName : "domx.tab",
 
     _construct : function(element,options) {
       // jscs:disable requireDollarBeforejQueryAssignment
@@ -13150,9 +14214,42 @@ define('skylark-bootstrap3/tab',[
   });
 
 
-  Tab.VERSION = '3.3.7'
-
   Tab.TRANSITION_DURATION = 150
+
+
+  plugins.register(Tab);
+
+  return panels.Tab = Tab;
+});
+
+define('skylark-bootstrap3/tab',[
+  "skylark-domx-plugins",
+  "skylark-domx-panels/Tab",
+  "./bs3"
+],function(plugins,_Tab,bs3){
+
+/* ========================================================================
+ * Bootstrap: tab.js v3.3.7
+ * http://getbootstrap.com/javascript/#tabs
+ * ========================================================================
+ * Copyright 2011-2016 Twitter, Inc.
+ * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
+ * ======================================================================== */
+
+  'use strict';
+
+  // TAB CLASS DEFINITION
+  // ====================
+
+
+  var Tab = bs3.Tab = _Tab.inherit({
+    klassName: "Tab",
+
+    pluginName : "bs3.tab"
+  });
+
+
+  Tab.VERSION = '3.3.7'
 
   /*
   // TAB PLUGIN DEFINITION
