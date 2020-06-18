@@ -12290,7 +12290,7 @@ define('skylark-domx-panels/Collapse',[
 
   plugins.register(Collapse);
 
-  return Collapse;
+  return panels.Collapse = Collapse;
 
 });
 
