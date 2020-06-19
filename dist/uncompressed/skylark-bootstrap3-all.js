@@ -11198,7 +11198,7 @@ define('skylark-domx-spy/Affix',[
   // AFFIX CLASS DEFINITION
   // ======================
 
-  var Affix = spy.Affix = plugins.Plugin.inherit({
+  var Affix = plugins.Plugin.inherit({
         klassName: "Affix",
 
         pluginName : "domx.affix",
