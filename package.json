@@ -37,6 +37,7 @@
     "skylark-domx-popups": "git+https://github.com/skylark-domx/skylark-domx-popups.git#master",
     "skylark-domx-query": "git+https://github.com/skylark-domx/skylark-domx-query.git#master",
     "skylark-domx-spy": "git+https://github.com/skylark-domx/skylark-domx-spy.git#master",
+    "skylark-domx-toggles": "git+https://github.com/skylark-domx/skylark-domx-toggles.git#master",
     "skylark-domx-velm": "git+https://github.com/skylark-domx/skylark-domx-velm.git#master",
     "skylark-langx": "git+https://github.com/skylark-langx/skylark-langx.git#master"
   },

@@ -12102,7 +12102,7 @@ define('skylark-domx-panels/panels',[
 
 });
 
-define('skylark-domx-panels/Collapse',[
+define('skylark-domx-panels/Panel',[
     "skylark-langx/langx",
     "skylark-domx-browser",
     "skylark-domx-eventer",
@@ -12117,10 +12117,10 @@ define('skylark-domx-panels/Collapse',[
   // COLLAPSE PUBLIC CLASS DEFINITION
   // ================================
 
-  var Collapse =  plugins.Plugin.inherit({
-    klassName: "Collapse",
+  var Panel =  plugins.Plugin.inherit({
+    klassName: "Panel",
 
-    pluginName : "domx.collapse",
+    pluginName : "domx.panels.panel",
 
     options : {
       toggle: true
@@ -12203,7 +12203,7 @@ define('skylark-domx-panels/Collapse',[
 
       this.$element
         .one('transitionEnd', langx.proxy(complete, this))
-        .emulateTransitionEnd(Collapse.TRANSITION_DURATION)[dimension](this.$element[0][scrollSize]);
+        .emulateTransitionEnd(Panel.TRANSITION_DURATION)[dimension](this.$element[0][scrollSize]);
     },
 
     hide : function () {
@@ -12247,7 +12247,7 @@ define('skylark-domx-panels/Collapse',[
       this.$element
         [dimension](0)
         .one('transitionEnd', langx.proxy(complete, this))
-        .emulateTransitionEnd(Collapse.TRANSITION_DURATION)
+        .emulateTransitionEnd(Panel.TRANSITION_DURATION)
     },
 
     toggle : function () {
@@ -12276,7 +12276,7 @@ define('skylark-domx-panels/Collapse',[
     */
   });
 
-  Collapse.TRANSITION_DURATION = 350;
+  Panel.TRANSITION_DURATION = 350;
 
   /*
   function getTargetFromTrigger($trigger) {
@@ -12288,9 +12288,9 @@ define('skylark-domx-panels/Collapse',[
   }
   */
 
-  plugins.register(Collapse);
+  plugins.register(Panel);
 
-  return panels.Collapse = Collapse;
+  return panels.Panel = Panel;
 
 });
 
@@ -12302,7 +12302,7 @@ define('skylark-bootstrap3/collapse',[
     "skylark-domx-geom",
     "skylark-domx-query",
     "skylark-domx-plugins",
-    "skylark-domx-panels/Collapse",
+    "skylark-domx-panels/Panel",
    "./bs3",
     "./transition"
 ], function(langx, browser, eventer, noder, geom, $, plugins,_Collapse, bs3) {
@@ -14104,7 +14104,12 @@ define('skylark-bootstrap3/scrollspy',[
 
 });
 
-define('skylark-domx-panels/Tab',[
+define('skylark-domx-toggles/toggles',[
+	"skylark-langx/skylark"
+],function(skylark){
+	return skylark.attach("domx.toggles",{});
+});
+define('skylark-domx-toggles/Tab',[
   "skylark-langx/langx",
   "skylark-domx-browser",
   "skylark-domx-eventer",
@@ -14112,8 +14117,8 @@ define('skylark-domx-panels/Tab',[
   "skylark-domx-geom",
   "skylark-domx-query",
   "skylark-domx-plugins",
-  "./panels"
-],function(langx,browser,eventer,noder,geom,$,plugins,panels){
+  "./toggles"
+],function(langx,browser,eventer,noder,geom,$,plugins,toggles){
 
   'use strict';
 
@@ -14124,7 +14129,7 @@ define('skylark-domx-panels/Tab',[
   var Tab =  plugins.Plugin.inherit({
     klassName: "Tab",
 
-    pluginName : "domx.tab",
+    pluginName : "domx.toggles.tab",
 
     _construct : function(element,options) {
       // jscs:disable requireDollarBeforejQueryAssignment
@@ -14235,12 +14240,12 @@ define('skylark-domx-panels/Tab',[
 
   plugins.register(Tab);
 
-  return panels.Tab = Tab;
+  return toggles.Tab = Tab;
 });
 
 define('skylark-bootstrap3/tab',[
   "skylark-domx-plugins",
-  "skylark-domx-panels/Tab",
+  "skylark-domx-toggles/Tab",
   "./bs3"
 ],function(plugins,_Tab,bs3){
 
