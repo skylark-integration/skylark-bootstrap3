@@ -5,5 +5,5 @@
  * @link https://github.com/skylarkui/skylark-bootstrap3/
  * @license MIT
  */
-define(["skylark-domx-plugins","skylark-domx-toggles/Tab","./bs3"],function(a,s,e){"use strict";var r=e.Tab=s.inherit({klassName:"Tab",pluginName:"bs3.tab"});return r.VERSION="3.3.7",a.register(r,"tab"),r});
+define(["skylark-domx-plugins","skylark-domx-toggles/TabButton","./bs3"],function(a,s,t){"use strict";var e=t.Tab=s.inherit({klassName:"Tab",pluginName:"bs3.tab"});return e.VERSION="3.3.7",a.register(e,"tab"),e});
 //# sourceMappingURL=sourcemaps/tab.js.map

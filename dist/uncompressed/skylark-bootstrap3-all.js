@@ -12038,78 +12038,19 @@ define('skylark-bootstrap3/carousel',[
     return Carousel;
 
 });
-define('skylark-domx-panels/panels',[
-  "skylark-langx/skylark",
-  "skylark-langx/langx",
-  "skylark-domx-browser",
-  "skylark-domx-eventer",
-  "skylark-domx-noder",
-  "skylark-domx-geom",
-  "skylark-domx-query"
-],function(skylark,langx,browser,eventer,noder,geom,$){
-	var panels = {};
-
-	var CONST = {
-		BACKSPACE_KEYCODE: 8,
-		COMMA_KEYCODE: 188, // `,` & `<`
-		DELETE_KEYCODE: 46,
-		DOWN_ARROW_KEYCODE: 40,
-		ENTER_KEYCODE: 13,
-		TAB_KEYCODE: 9,
-		UP_ARROW_KEYCODE: 38
-	};
-
-	var isShiftHeld = function isShiftHeld (e) { return e.shiftKey === true; };
-
-	var isKey = function isKey (keyCode) {
-		return function compareKeycodes (e) {
-			return e.keyCode === keyCode;
-		};
-	};
-
-	var isBackspaceKey = isKey(CONST.BACKSPACE_KEYCODE);
-	var isDeleteKey = isKey(CONST.DELETE_KEYCODE);
-	var isTabKey = isKey(CONST.TAB_KEYCODE);
-	var isUpArrow = isKey(CONST.UP_ARROW_KEYCODE);
-	var isDownArrow = isKey(CONST.DOWN_ARROW_KEYCODE);
-
-	var ENCODED_REGEX = /&[^\s]*;/;
-	/*
-	 * to prevent double encoding decodes content in loop until content is encoding free
-	 */
-	var cleanInput = function cleanInput (questionableMarkup) {
-		// check for encoding and decode
-		while (ENCODED_REGEX.test(questionableMarkup)) {
-			questionableMarkup = $('<i>').html(questionableMarkup).text();
-		}
-
-		// string completely decoded now encode it
-		return $('<i>').text(questionableMarkup).html();
-	};
-
-	langx.mixin(panels, {
-		CONST: CONST,
-		cleanInput: cleanInput,
-		isBackspaceKey: isBackspaceKey,
-		isDeleteKey: isDeleteKey,
-		isShiftHeld: isShiftHeld,
-		isTabKey: isTabKey,
-		isUpArrow: isUpArrow,
-		isDownArrow: isDownArrow
-	});
-
-	return skylark.attach("domx.panels",panels);
-
+define('skylark-domx-toggles/toggles',[
+	"skylark-langx/skylark"
+],function(skylark){
+	return skylark.attach("domx.toggles",{});
 });
-
-define('skylark-domx-panels/Panel',[
+define('skylark-domx-toggles/Collapsable',[
     "skylark-langx/langx",
     "skylark-domx-browser",
     "skylark-domx-eventer",
     "skylark-domx-query",
     "skylark-domx-plugins",
-    "./panels"
-], function(langx, browser, eventer,  $, plugins, panels) {
+    "./toggles"
+], function(langx, browser, eventer,  $, plugins, toggles) {
 
 
   'use strict';
@@ -12117,10 +12058,10 @@ define('skylark-domx-panels/Panel',[
   // COLLAPSE PUBLIC CLASS DEFINITION
   // ================================
 
-  var Panel =  plugins.Plugin.inherit({
-    klassName: "Panel",
+  var Collapsable =  plugins.Plugin.inherit({
+    klassName: "Collapsable",
 
-    pluginName : "domx.panels.panel",
+    pluginName : "domx.toggles.collapsable",
 
     options : {
       toggle: true
@@ -12156,7 +12097,7 @@ define('skylark-domx-panels/Panel',[
       }
 
       //var activesData;
-      //var actives = this.$parent && this.$parent.children('.panel').children('.in, .collapsing')
+      //var actives = this.$parent && this.$parent.children('.collapsable').children('.in, .collapsing')
 
       //if (actives && actives.length) {
       //  activesData = actives.data('collapse')
@@ -12203,7 +12144,7 @@ define('skylark-domx-panels/Panel',[
 
       this.$element
         .one('transitionEnd', langx.proxy(complete, this))
-        .emulateTransitionEnd(Panel.TRANSITION_DURATION)[dimension](this.$element[0][scrollSize]);
+        .emulateTransitionEnd(Collapsable.TRANSITION_DURATION)[dimension](this.$element[0][scrollSize]);
     },
 
     hide : function () {
@@ -12247,7 +12188,7 @@ define('skylark-domx-panels/Panel',[
       this.$element
         [dimension](0)
         .one('transitionEnd', langx.proxy(complete, this))
-        .emulateTransitionEnd(Panel.TRANSITION_DURATION)
+        .emulateTransitionEnd(Collapsable.TRANSITION_DURATION)
     },
 
     toggle : function () {
@@ -12276,7 +12217,7 @@ define('skylark-domx-panels/Panel',[
     */
   });
 
-  Panel.TRANSITION_DURATION = 350;
+  Collapsable.TRANSITION_DURATION = 350;
 
   /*
   function getTargetFromTrigger($trigger) {
@@ -12288,9 +12229,9 @@ define('skylark-domx-panels/Panel',[
   }
   */
 
-  plugins.register(Panel);
+  plugins.register(Collapsable);
 
-  return panels.Panel = Panel;
+  return toggles.Collapsable = Collapsable;
 
 });
 
@@ -12302,7 +12243,7 @@ define('skylark-bootstrap3/collapse',[
     "skylark-domx-geom",
     "skylark-domx-query",
     "skylark-domx-plugins",
-    "skylark-domx-panels/Panel",
+    "skylark-domx-toggles/Collapsable",
    "./bs3",
     "./transition"
 ], function(langx, browser, eventer, noder, geom, $, plugins,_Collapse, bs3) {
@@ -14104,12 +14045,7 @@ define('skylark-bootstrap3/scrollspy',[
 
 });
 
-define('skylark-domx-toggles/toggles',[
-	"skylark-langx/skylark"
-],function(skylark){
-	return skylark.attach("domx.toggles",{});
-});
-define('skylark-domx-toggles/Tab',[
+define('skylark-domx-toggles/TabButton',[
   "skylark-langx/langx",
   "skylark-domx-browser",
   "skylark-domx-eventer",
@@ -14126,10 +14062,10 @@ define('skylark-domx-toggles/Tab',[
   // ====================
 
 
-  var Tab =  plugins.Plugin.inherit({
-    klassName: "Tab",
+  var TabButton =  plugins.Plugin.inherit({
+    klassName: "TabButton",
 
-    pluginName : "domx.toggles.tab",
+    pluginName : "domx.toggles.tabButton",
 
     _construct : function(element,options) {
       // jscs:disable requireDollarBeforejQueryAssignment
@@ -14137,7 +14073,7 @@ define('skylark-domx-toggles/Tab',[
       this.target = options && options.target;
 
       // jscs:enable requireDollarBeforejQueryAssignment
-      this.element.on("click.bs.tab.data-api",langx.proxy(function(e){
+      this.element.on("click.domx.toggles.tabButton",langx.proxy(function(e){
         e.preventDefault()
         this.show();
       },this));    
@@ -14225,7 +14161,7 @@ define('skylark-domx-toggles/Tab',[
       $active.length && transition ?
         $active
           .one('transitionEnd', next)
-          .emulateTransitionEnd(Tab.TRANSITION_DURATION) :
+          .emulateTransitionEnd(TabButton.TRANSITION_DURATION) :
         next()
 
       $active.removeClass('in')
@@ -14235,17 +14171,17 @@ define('skylark-domx-toggles/Tab',[
   });
 
 
-  Tab.TRANSITION_DURATION = 150
+  TabButton.TRANSITION_DURATION = 150
 
 
-  plugins.register(Tab);
+  plugins.register(TabButton);
 
-  return toggles.Tab = Tab;
+  return toggles.TabButton = TabButton;
 });
 
 define('skylark-bootstrap3/tab',[
   "skylark-domx-plugins",
-  "skylark-domx-toggles/Tab",
+  "skylark-domx-toggles/TabButton",
   "./bs3"
 ],function(plugins,_Tab,bs3){
 
