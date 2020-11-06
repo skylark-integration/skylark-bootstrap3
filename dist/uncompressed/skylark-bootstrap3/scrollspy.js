@@ -1,6 +1,6 @@
 define([
   "skylark-domx-plugins",
-  "skylark-domx-spy/ScrollSpy",
+  "skylark-domx-scrolls/ScrollSpy",
   "./bs3"
 ],function(plugins,_ScrollSpy,bs3){
 
