@@ -1,7 +1,6 @@
 define([
  	"skylark-langx/langx",
  	"skylark-domx-query",
- 	"./bs3",
 	"./affix",
 	"./alert",
 	"./button",
@@ -15,7 +14,7 @@ define([
 	"./taginput",
 	"./tooltip",
 	"./transition"
-],function(langx,$, bs3, Affix,Alert,Button,Carousel,Collapse,Dropdown,Modal,Popover,ScrollSpy,Tab,Tooltip){
+],function(langx,$,Affix,Alert,Button,Carousel,Collapse,Dropdown,Modal,Popover,ScrollSpy,Tab,Tooltip){
 	function getTargetFromTrigger($trigger) {
 		var href
 		var target = $trigger.attr('data-target')
@@ -24,7 +23,7 @@ define([
 		return $(target);
 	}
 
-	var init = bs3.function() {
+	var init = function() {
     
 		$(function () {
 		    // AFFIX DATA-API
