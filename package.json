@@ -10,7 +10,7 @@
   "homepage": "https://github.com/skylarkui/skylark-bootstrap3/",
   "author": "Hudaokeji, Inc.",
   "scripts": {
-    "build": "sbundle build ."
+    "build": "slib build ."
   },
   "repository": {
     "type": "git",
@@ -32,12 +32,12 @@
     "skylark-domx-eventer": "git+https://github.com/skylark-domx/skylark-domx-eventer.git#master",
     "skylark-domx-geom": "git+https://github.com/skylark-domx/skylark-domx-geom.git#master",
     "skylark-domx-noder": "git+https://github.com/skylark-domx/skylark-domx-noder.git#master",
-    "skylark-domx-panels": "git+https://github.com/skylark-domx/skylark-domx-panels.git#master",
     "skylark-domx-plugins": "git+https://github.com/skylark-domx/skylark-domx-plugins.git#master",
-    "skylark-domx-popups": "git+https://github.com/skylark-domx/skylark-domx-popups.git#master",
+    "skylark-domx-plugins-panels": "git+https://github.com/skylark-domx-plugins/skylark-domx-plugins-panels.git#master",
+    "skylark-domx-plugins-popups": "git+https://github.com/skylark-domx-plugins/skylark-domx-plugins-popups.git#master",
+    "skylark-domx-plugins-toggles": "git+https://github.com/skylark-domx-plugins/skylark-domx-plugins-toggles.git#master",
     "skylark-domx-query": "git+https://github.com/skylark-domx/skylark-domx-query.git#master",
     "skylark-domx-scrolls": "git+https://github.com/skylark-domx/skylark-domx-scrolls.git#master",
-    "skylark-domx-toggles": "git+https://github.com/skylark-domx/skylark-domx-toggles.git#master",
     "skylark-domx-velm": "git+https://github.com/skylark-domx/skylark-domx-velm.git#master",
     "skylark-langx": "git+https://github.com/skylark-langx/skylark-langx.git#master"
   },

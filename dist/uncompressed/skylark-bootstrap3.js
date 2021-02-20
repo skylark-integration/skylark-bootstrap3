@@ -826,7 +826,7 @@ define('skylark-bootstrap3/collapse',[
     "skylark-domx-geom",
     "skylark-domx-query",
     "skylark-domx-plugins",
-    "skylark-domx-toggles/Collapsable",
+    "skylark-domx-plugins-toggles/Collapsable",
    "./bs3",
     "./transition"
 ], function(langx, browser, eventer, noder, geom, $, plugins,_Collapse, bs3) {
@@ -1045,7 +1045,7 @@ define('skylark-bootstrap3/dropdown',[
   "skylark-domx-geom",
   "skylark-domx-query",
   "skylark-domx-plugins",
-  "skylark-domx-popups/Dropdown",
+  "skylark-domx-plugins-popups/Dropdown",
   "./bs3"
 ],function(langx,browser,eventer,noder,geom,$,plugins,_Dropdown,bs3){
 
@@ -2224,7 +2224,7 @@ define('skylark-bootstrap3/scrollspy',[
 
 define('skylark-bootstrap3/tab',[
   "skylark-domx-plugins",
-  "skylark-domx-toggles/TabButton",
+  "skylark-domx-plugins-toggles/TabButton",
   "./bs3"
 ],function(plugins,_Tab,bs3){
 
