@@ -19,6 +19,11 @@ requirejs.config({
             main: 'main'
          },
          {
+           name : "skylark-langx-binary",
+           location : "../node_modules/skylark-langx-binary/dist/uncompressed/skylark-langx-binary",
+            main: 'main'
+         },
+         {
            name : "skylark-langx-datetimes",
            location : "../node_modules/skylark-langx-datetimes/dist/uncompressed/skylark-langx-datetimes",
             main: 'main'
@@ -59,8 +64,8 @@ requirejs.config({
             main: 'main'
          },
          {
-           name : "skylark-langx-numbers",
-           location : "../node_modules/skylark-langx-numbers/dist/uncompressed/skylark-langx-numbers",
+           name : "skylark-langx-numerics",
+           location : "../node_modules/skylark-langx-numerics/dist/uncompressed/skylark-langx-numerics",
             main: 'main'
          },
          {
@@ -146,18 +151,23 @@ requirejs.config({
             main: 'main'
          },
          {
-           name : "skylark-domx-panels",
-           location : "../node_modules/skylark-domx-panels/dist/uncompressed/skylark-domx-panels",
-            main: 'main'
-         },
-         {
            name : "skylark-domx-plugins",
            location : "../node_modules/skylark-domx-plugins/dist/uncompressed/skylark-domx-plugins",
             main: 'main'
          },
          {
-           name : "skylark-domx-popups",
-           location : "../node_modules/skylark-domx-popups/dist/uncompressed/skylark-domx-popups",
+           name : "skylark-domx-plugins-panels",
+           location : "../node_modules/skylark-domx-plugins-panels/dist/uncompressed/skylark-domx-plugins-panels",
+            main: 'main'
+         },
+         {
+           name : "skylark-domx-plugins-popups",
+           location : "../node_modules/skylark-domx-plugins-popups/dist/uncompressed/skylark-domx-plugins-popups",
+            main: 'main'
+         },
+         {
+           name : "skylark-domx-plugins-toggles",
+           location : "../node_modules/skylark-domx-plugins-toggles/dist/uncompressed/skylark-domx-plugins-toggles",
             main: 'main'
          },
          {
@@ -169,6 +179,11 @@ requirejs.config({
          {
            name : "skylark-domx-scripter",
            location : "../node_modules/skylark-domx-scripter/dist/uncompressed/skylark-domx-scripter",
+            main: 'main'
+         },
+         {
+           name : "skylark-domx-scrolls",
+           location : "../node_modules/skylark-domx-scrolls/dist/uncompressed/skylark-domx-scrolls",
             main: 'main'
          },
          {
