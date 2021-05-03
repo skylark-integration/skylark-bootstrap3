@@ -50,6 +50,10 @@ define([
             this.$element.trigger('loaded.bs.modal')
           }, this))
       }
+
+      if (this.options.show) {
+        this.show();
+      }
     },
 
     toggle : function (_relatedTarget) {
