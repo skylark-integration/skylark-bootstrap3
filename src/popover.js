@@ -3,7 +3,7 @@ define([
   "skylark-langx/langx",
   "skylark-domx-eventer",
   "skylark-domx-query",
-  "skylark-domx-plugins",
+  "skylark-domx-plugins-base",
   "./bs3",
   "./tooltip" 
 ],function(browser,langx,eventer,$,plugins,bs3,Tooltip){

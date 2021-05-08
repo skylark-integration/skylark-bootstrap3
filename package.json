@@ -32,7 +32,7 @@
     "skylark-domx-eventer": "git+https://github.com/skylark-domx/skylark-domx-eventer.git#master",
     "skylark-domx-geom": "git+https://github.com/skylark-domx/skylark-domx-geom.git#master",
     "skylark-domx-noder": "git+https://github.com/skylark-domx/skylark-domx-noder.git#master",
-    "skylark-domx-plugins": "git+https://github.com/skylark-domx/skylark-domx-plugins.git#master",
+    "skylark-domx-plugins-base": "git+https://github.com/skylark-domx-plugins/skylark-domx-plugins-base.git#master",
     "skylark-domx-plugins-panels": "git+https://github.com/skylark-domx-plugins/skylark-domx-plugins-panels.git#master",
     "skylark-domx-plugins-popups": "git+https://github.com/skylark-domx-plugins/skylark-domx-plugins-popups.git#master",
     "skylark-domx-plugins-toggles": "git+https://github.com/skylark-domx-plugins/skylark-domx-plugins-toggles.git#master",

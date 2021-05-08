@@ -162,7 +162,7 @@ define('skylark-bootstrap3/bs3',[
 });
 
 define('skylark-bootstrap3/affix',[
-  "skylark-domx-plugins",
+  "skylark-domx-plugins-base",
   "skylark-domx-scrolls/Affix",
   "./bs3"
 ],function(plugins,_Affix,bs3){
@@ -235,7 +235,7 @@ define('skylark-bootstrap3/alert',[
   "skylark-domx-noder",
   "skylark-domx-geom",
   "skylark-domx-query",
-  "skylark-domx-plugins",
+  "skylark-domx-plugins-base",
   "./bs3"
 ],function(langx,browser,eventer,noder,geom,$,plugins,bs3){
 
@@ -359,7 +359,7 @@ define('skylark-bootstrap3/button',[
   "skylark-domx-noder",
   "skylark-domx-geom",
   "skylark-domx-query",
-  "skylark-domx-plugins",
+  "skylark-domx-plugins-base",
   "./bs3"
 ],function(langx,browser,eventer,noder,geom,$,plugins,bs3){
 
@@ -543,7 +543,7 @@ define('skylark-bootstrap3/carousel',[
     "skylark-domx-noder",
     "skylark-domx-geom",
     "skylark-domx-query",
-    "skylark-domx-plugins",
+    "skylark-domx-plugins-base",
     "./bs3",
     "./transition"
 ], function(langx, browser, eventer, noder, geom, $, plugins, bs3) {
@@ -825,7 +825,7 @@ define('skylark-bootstrap3/collapse',[
     "skylark-domx-noder",
     "skylark-domx-geom",
     "skylark-domx-query",
-    "skylark-domx-plugins",
+    "skylark-domx-plugins-base",
     "skylark-domx-plugins-toggles/Collapsable",
    "./bs3",
     "./transition"
@@ -1044,7 +1044,7 @@ define('skylark-bootstrap3/dropdown',[
   "skylark-domx-noder",
   "skylark-domx-geom",
   "skylark-domx-query",
-  "skylark-domx-plugins",
+  "skylark-domx-plugins-base",
   "skylark-domx-plugins-popups/Dropdown",
   "./bs3"
 ],function(langx,browser,eventer,noder,geom,$,plugins,_Dropdown,bs3){
@@ -1128,7 +1128,7 @@ define('skylark-bootstrap3/modal',[
   "skylark-domx-noder",
   "skylark-domx-geom",
   "skylark-domx-query",
-  "skylark-domx-plugins",
+  "skylark-domx-plugins-base",
   "./bs3"
 ],function(langx,browser,eventer,noder,geom,$,plugins,bs3){
 
@@ -1494,7 +1494,7 @@ define('skylark-bootstrap3/tooltip',[
   "skylark-domx-noder",
   "skylark-domx-geom",
   "skylark-domx-query",
-  "skylark-domx-plugins",
+  "skylark-domx-plugins-base",
   "./bs3"
 ],function(langx,browser,eventer,noder,geom,$,plugins,bs3){
 
@@ -2037,7 +2037,7 @@ define('skylark-bootstrap3/popover',[
   "skylark-langx/langx",
   "skylark-domx-eventer",
   "skylark-domx-query",
-  "skylark-domx-plugins",
+  "skylark-domx-plugins-base",
   "./bs3",
   "./tooltip" 
 ],function(browser,langx,eventer,$,plugins,bs3,Tooltip){
@@ -2158,7 +2158,7 @@ define('skylark-bootstrap3/popover',[
 });
 
 define('skylark-bootstrap3/scrollspy',[
-  "skylark-domx-plugins",
+  "skylark-domx-plugins-base",
   "skylark-domx-scrolls/ScrollSpy",
   "./bs3"
 ],function(plugins,_ScrollSpy,bs3){
@@ -2227,7 +2227,7 @@ define('skylark-bootstrap3/scrollspy',[
 });
 
 define('skylark-bootstrap3/tab',[
-  "skylark-domx-plugins",
+  "skylark-domx-plugins-base",
   "skylark-domx-plugins-toggles/TabButton",
   "./bs3"
 ],function(plugins,_Tab,bs3){
@@ -2298,7 +2298,7 @@ define('skylark-bootstrap3/taginput',[
   "skylark-domx-noder",
   "skylark-domx-geom",
   "skylark-domx-query",
-  "skylark-domx-plugins",
+  "skylark-domx-plugins-base",
   "./bs3"
 ],function(langx,browser,eventer,noder,geom,$,plugins,bs3){
 

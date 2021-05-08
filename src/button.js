@@ -5,7 +5,7 @@ define([
   "skylark-domx-noder",
   "skylark-domx-geom",
   "skylark-domx-query",
-  "skylark-domx-plugins",
+  "skylark-domx-plugins-base",
   "./bs3"
 ],function(langx,browser,eventer,noder,geom,$,plugins,bs3){
 

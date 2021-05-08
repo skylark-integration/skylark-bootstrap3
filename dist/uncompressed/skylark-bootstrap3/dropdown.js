@@ -5,7 +5,7 @@ define([
   "skylark-domx-noder",
   "skylark-domx-geom",
   "skylark-domx-query",
-  "skylark-domx-plugins",
+  "skylark-domx-plugins-base",
   "skylark-domx-plugins-popups/Dropdown",
   "./bs3"
 ],function(langx,browser,eventer,noder,geom,$,plugins,_Dropdown,bs3){

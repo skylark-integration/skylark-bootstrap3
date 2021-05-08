@@ -1,5 +1,5 @@
 define([
-  "skylark-domx-plugins",
+  "skylark-domx-plugins-base",
   "skylark-domx-scrolls/Affix",
   "./bs3"
 ],function(plugins,_Affix,bs3){
