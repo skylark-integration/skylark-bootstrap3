@@ -6,7 +6,7 @@ define([
     "skylark-domx-geom",
     "skylark-domx-query",
     "skylark-domx-plugins-base",
-    "skylark-domx-plugins-toggles/Collapsable",
+    "skylark-domx-plugins-toggles/collapse",
    "./bs3",
     "./transition"
 ], function(langx, browser, eventer, noder, geom, $, plugins,_Collapse, bs3) {

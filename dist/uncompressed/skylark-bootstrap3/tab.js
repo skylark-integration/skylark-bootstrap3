@@ -1,6 +1,6 @@
 define([
   "skylark-domx-plugins-base",
-  "skylark-domx-plugins-toggles/TabButton",
+  "skylark-domx-plugins-toggles/tab",
   "./bs3"
 ],function(plugins,_Tab,bs3){
 

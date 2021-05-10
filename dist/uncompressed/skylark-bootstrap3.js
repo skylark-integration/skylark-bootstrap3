@@ -826,7 +826,7 @@ define('skylark-bootstrap3/collapse',[
     "skylark-domx-geom",
     "skylark-domx-query",
     "skylark-domx-plugins-base",
-    "skylark-domx-plugins-toggles/Collapsable",
+    "skylark-domx-plugins-toggles/collapse",
    "./bs3",
     "./transition"
 ], function(langx, browser, eventer, noder, geom, $, plugins,_Collapse, bs3) {
@@ -2228,7 +2228,7 @@ define('skylark-bootstrap3/scrollspy',[
 
 define('skylark-bootstrap3/tab',[
   "skylark-domx-plugins-base",
-  "skylark-domx-plugins-toggles/TabButton",
+  "skylark-domx-plugins-toggles/tab",
   "./bs3"
 ],function(plugins,_Tab,bs3){
 
