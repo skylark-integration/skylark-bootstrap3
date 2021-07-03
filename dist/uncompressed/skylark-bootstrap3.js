@@ -163,7 +163,7 @@ define('skylark-bootstrap3/bs3',[
 
 define('skylark-bootstrap3/affix',[
   "skylark-domx-plugins-base",
-  "skylark-domx-plugins-scrolls/Affix",
+  "skylark-domx-plugins-scrolls/affix",
   "./bs3"
 ],function(plugins,_Affix,bs3){
 
@@ -1045,7 +1045,7 @@ define('skylark-bootstrap3/dropdown',[
   "skylark-domx-geom",
   "skylark-domx-query",
   "skylark-domx-plugins-base",
-  "skylark-domx-plugins-popups/Dropdown",
+  "skylark-domx-plugins-popups/dropdown",
   "./bs3"
 ],function(langx,browser,eventer,noder,geom,$,plugins,_Dropdown,bs3){
 
@@ -2159,7 +2159,7 @@ define('skylark-bootstrap3/popover',[
 
 define('skylark-bootstrap3/scrollspy',[
   "skylark-domx-plugins-base",
-  "skylark-domx-plugins-scrolls/ScrollSpy",
+  "skylark-domx-plugins-scrolls/scroll-spy",
   "./bs3"
 ],function(plugins,_ScrollSpy,bs3){
 
