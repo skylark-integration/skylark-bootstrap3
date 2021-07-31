@@ -7,17 +7,17 @@
     "ui",
     "bootstrap3"
   ],
-  "homepage": "https://github.com/skylarkui/skylark-bootstrap3/",
+  "homepage": "https://github.com/skylark-integration/skylark-bootstrap3/",
   "author": "Hudaokeji, Inc.",
   "scripts": {
     "build": "slib build ."
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/skylarkui/skylark-bootstrap3.git"
+    "url": "https://github.com/skylark-integration/skylark-bootstrap3.git"
   },
   "bugs": {
-    "url": "https://github.com/skylarkui/skylark-bootstrap3/issues"
+    "url": "https://github.com/skylark-integration/skylark-bootstrap3/issues"
   },
   "files": [
     "examples/",
