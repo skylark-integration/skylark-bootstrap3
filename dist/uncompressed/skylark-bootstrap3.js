@@ -3039,7 +3039,8 @@ define('skylark-bootstrap3/loadedInit',[
 		    // =================
 			$(document).on('click.bs3.button.data-api', '[data-toggle^="button"]', function (e) {
 				var $btn = $(e.target).closest('.btn')
-				$btn.button('toggle');
+				///$btn.button('toggle');
+				$btn.plugin("bs3.button").toggle();
 				if (!($(e.target).is('input[type="radio"], input[type="checkbox"]'))) {
 					// Prevent double click on radios, and the double selections (so cancellation) on checkboxes
 					e.preventDefault()
@@ -3050,9 +3051,10 @@ define('skylark-bootstrap3/loadedInit',[
 						$btn.find('input:visible,button:visible').first().trigger('focus');
 					}
 				}
-			}).on('focus.bs3.button.data-api blur.bs3.button.data-api', '[data-toggle^="button"]', function (e) {
-				$(e.target).closest('.btn').toggleClass('focus', /^focus(in)?$/.test(e.type));
 			});
+			///.on('focus.bs3.button.data-api blur.bs3.button.data-api', '[data-toggle^="button"]', function (e) {
+			///	$(e.target).closest('.btn').toggleClass('focus', /^focus(in)?$/.test(e.type));
+			///});
 
 		    // CAROUSEL DATA-API
 		    // =================
